@@ -1,0 +1,84 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<main class="app-main">
+  <section class="dashboard-head">
+    <div>
+      <p class="eyebrow">Contratante</p>
+      <h1>Minhas solicitações</h1>
+    </div>
+    <a class="btn btn-primary" href="/">Buscar serviços</a>
+  </section>
+
+  <section class="metric-row dashboard-metrics">
+    <div class="metric">
+      <span><%= stats.open %></span>
+      <small>Em aberto</small>
+    </div>
+    <div class="metric">
+      <span><%= stats.completed %></span>
+      <small>Concluídas</small>
+    </div>
+    <div class="metric">
+      <span><%= stats.canceled %></span>
+      <small>Canceladas</small>
+    </div>
+  </section>
+
+  <section class="table-panel">
+    <% if (requests.length) { %>
+      <div class="responsive-table">
+        <table class="table app-table">
+          <thead>
+            <tr>
+              <th>Serviço</th>
+              <th>Prestador</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Conversa</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% requests.forEach((request) => { %>
+              <tr>
+                <td>
+                  <div class="table-service">
+                    <img src="<%= request.image || '/assets/images/services-bg.jpg' %>" alt="">
+                    <div>
+                      <strong><%= request.service_title %></strong>
+                      <span><%= formatCurrency(request.price) %></span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <%= request.provider_name %>
+                  <small><%= request.provider_phone || '' %></small>
+                </td>
+                <td><%= formatDate(request.scheduled_date) %></td>
+                <td><span class="badge badge-<%= statusClass(request.status) %>"><%= statusLabel(request.status) %></span></td>
+                <td><a class="btn btn-sm btn-outline-primary chat-link" href="/solicitacoes/<%= request.id %>/conversa"><i class="fa fa-comments-o" aria-hidden="true"></i> Conversar <% if (request.unread_count) { %><span class="unread-badge" aria-label="<%= request.unread_count === 1 ? 'Uma mensagem não lida' : `${request.unread_count} mensagens não lidas` %>"><%= request.unread_count %></span><% } %></a></td>
+                <td class="text-right">
+                  <% if (!['completed', 'canceled'].includes(request.status)) { %>
+                    <form action="/contratante/solicitacoes/<%= request.id %>/cancelar" method="post">
+                      <button class="btn btn-sm btn-outline-danger" type="submit">Cancelar</button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <h2>Nenhuma solicitação ainda</h2>
+        <p>Escolha um serviço no catálogo para iniciar sua primeira contratação.</p>
+        <a class="btn btn-primary" href="/">Ver catálogo</a>
+      </div>
+    <% } %>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

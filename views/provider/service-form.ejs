@@ -1,0 +1,74 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<main class="app-main narrow-main">
+  <section class="form-panel">
+    <div class="form-heading">
+      <p class="eyebrow"><%= currentUser.role === 'admin' ? 'Administração' : 'Prestador' %></p>
+      <h1><%= service ? 'Editar serviço' : 'Novo serviço' %></h1>
+    </div>
+    <form action="<%= currentUser.role === 'admin' ? '/admin/servicos' : service ? `/prestador/servicos/${service.id}` : '/prestador/servicos' %>" method="post">
+      <% if (currentUser.role === 'admin') { %>
+        <div class="form-group">
+          <label for="provider_id">Prestador responsável</label>
+          <select class="form-control" id="provider_id" name="provider_id" required>
+            <option value="">Selecione um prestador</option>
+            <% providers.forEach((provider) => { %>
+              <option value="<%= provider.id %>" <%= Number(form.provider_id) === Number(provider.id) ? 'selected' : '' %>><%= provider.name %></option>
+            <% }) %>
+          </select>
+        </div>
+      <% } %>
+      <div class="form-group">
+        <label for="title">Título</label>
+        <input class="form-control" id="title" name="title" maxlength="120" autocapitalize="sentences" value="<%= form.title || '' %>" required>
+      </div>
+      <div class="form-group">
+        <label for="category_id">Categoria</label>
+        <select class="form-control" id="category_id" name="category_id" required>
+          <option value="">Selecione</option>
+          <% categories.forEach((category) => { %>
+            <option value="<%= category.id %>" <%= Number(form.category_id) === Number(category.id) ? 'selected' : '' %>><%= category.name %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="description">Descrição</label>
+        <textarea class="form-control" id="description" name="description" rows="4" maxlength="2000" autocapitalize="sentences" required><%= form.description || '' %></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label for="price">Preço (R$)</label>
+          <input class="form-control" id="price" name="price" type="number" min="0.01" max="1000000" step="0.01" value="<%= Number.isFinite(form.price) ? form.price : '' %>" required>
+        </div>
+        <div class="form-group col-md-6">
+          <label for="service_area">Área de atendimento</label>
+          <input class="form-control" id="service_area" name="service_area" maxlength="160" value="<%= form.service_area || '' %>" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="duration_minutes">Duração prevista</label>
+        <select class="form-control" id="duration_minutes" name="duration_minutes" required>
+          <% durationOptions.forEach((duration) => { %><option value="<%= duration %>" <%= Number(form.duration_minutes || 60) === duration ? 'selected' : '' %>><%= duration %> minutos</option><% }) %>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="image">Imagem</label>
+        <select class="form-control" id="image" name="image">
+          <% imageOptions.forEach((image) => { %>
+            <option value="<%= image %>" <%= form.image === image ? 'selected' : '' %>><%= imageLabel(image) %></option>
+          <% }) %>
+        </select>
+      </div>
+      <div class="button-row">
+        <a class="btn btn-outline-secondary" href="<%= currentUser.role === 'admin' ? '/admin/servicos' : '/prestador' %>">Voltar</a>
+        <button class="btn btn-primary" type="submit" <%= !categories.length || (currentUser.role === 'admin' && !providers.length) ? 'disabled' : '' %>><i class="fa fa-check" aria-hidden="true"></i> <%= service ? 'Salvar alterações' : 'Cadastrar serviço' %></button>
+      </div>
+      <% if (!categories.length) { %><p class="form-note">Nenhuma categoria ativa disponível.</p><% } %>
+      <% if (currentUser.role === 'admin' && !providers.length) { %><p class="form-note">Nenhum prestador ativo disponível.</p><% } %>
+    </form>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

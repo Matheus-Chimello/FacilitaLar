@@ -1,0 +1,80 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<main class="app-main">
+  <section class="dashboard-head">
+    <div>
+      <p class="eyebrow">Administração</p>
+      <h1>Painel administrativo</h1>
+    </div>
+    <div class="button-row">
+      <a class="btn btn-primary" href="/admin/servicos/novo"><i class="fa fa-plus" aria-hidden="true"></i> Novo serviço</a>
+      <a class="btn btn-outline-secondary" href="/admin/categorias">Categorias</a>
+      <a class="btn btn-outline-secondary" href="/admin/usuarios">Usuários</a>
+    </div>
+  </section>
+
+  <section class="metric-row dashboard-metrics">
+    <div class="metric">
+      <span><%= stats.users %></span>
+      <small>Usuários</small>
+    </div>
+    <div class="metric">
+      <span><%= stats.providers %></span>
+      <small>Prestadores</small>
+    </div>
+    <div class="metric">
+      <span><%= stats.services %></span>
+      <small>Serviços</small>
+    </div>
+    <div class="metric">
+      <span><%= stats.requests %></span>
+      <small>Solicitações</small>
+    </div>
+  </section>
+
+  <section class="admin-nav-grid">
+    <a href="/admin/usuarios"><i class="fa fa-users"></i><span>Usuários</span></a>
+    <a href="/admin/categorias"><i class="fa fa-tags"></i><span>Categorias</span></a>
+    <a href="/admin/servicos"><i class="fa fa-briefcase"></i><span>Serviços</span></a>
+    <a href="/admin/solicitacoes"><i class="fa fa-calendar-check-o"></i><span>Solicitações</span></a>
+  </section>
+
+  <section class="table-panel">
+    <div class="section-title-row">
+      <h2>Solicitações recentes</h2>
+      <a href="/admin/solicitacoes">Ver todas</a>
+    </div>
+    <% if (recentRequests.length) { %>
+      <div class="responsive-table">
+        <table class="table app-table">
+          <thead>
+            <tr>
+              <th>Serviço</th>
+              <th>Contratante</th>
+              <th>Prestador</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recentRequests.forEach((request) => { %>
+              <tr>
+                <td><%= request.service_title %></td>
+                <td><%= request.customer_name %></td>
+                <td><%= request.provider_name %></td>
+                <td><span class="badge badge-<%= statusClass(request.status) %>"><%= statusLabel(request.status) %></span></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <h2>Nenhuma solicitação registrada</h2>
+      </div>
+    <% } %>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

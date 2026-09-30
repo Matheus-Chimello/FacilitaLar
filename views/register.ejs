@@ -1,0 +1,51 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+<%- include('partials/flash') %>
+
+<main class="app-main narrow-main">
+  <section class="form-panel">
+    <div class="form-heading">
+      <p class="eyebrow">Cadastro</p>
+      <h1>Criar conta</h1>
+    </div>
+    <form action="/cadastro" method="post">
+      <div class="form-group">
+        <label for="role">Tipo de conta</label>
+        <select class="form-control" id="role" name="role">
+          <option value="customer" <%= form.role === 'customer' ? 'selected' : '' %>>Contratante</option>
+          <option value="provider" <%= form.role === 'provider' ? 'selected' : '' %>>Prestador de serviço</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="name">Nome</label>
+        <input class="form-control" id="name" name="name" value="<%= form.name || '' %>" required>
+      </div>
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input class="form-control" id="email" name="email" type="email" value="<%= form.email || '' %>" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Senha</label>
+        <input class="form-control" id="password" name="password" type="password" minlength="6" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label for="phone">Telefone</label>
+          <input class="form-control" id="phone" name="phone" value="<%= form.phone || '' %>">
+        </div>
+        <div class="form-group col-md-6">
+          <label for="city">Cidade</label>
+          <input class="form-control" id="city" name="city" value="<%= form.city || '' %>">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="bio">Resumo</label>
+        <textarea class="form-control" id="bio" name="bio" rows="3"><%= form.bio || '' %></textarea>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">Cadastrar</button>
+    </form>
+    <p class="form-link">Já tem conta? <a href="/entrar">Entrar</a></p>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

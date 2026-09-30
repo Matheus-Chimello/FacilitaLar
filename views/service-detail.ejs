@@ -1,0 +1,53 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+<%- include('partials/flash') %>
+
+<main class="app-main">
+  <section class="detail-layout">
+    <div class="detail-media">
+      <img src="<%= service.image || '/assets/images/services-bg.jpg' %>" alt="<%= service.title %>">
+    </div>
+    <div class="detail-info">
+      <span class="category-pill"><i class="fa <%= service.category_icon || 'fa-tag' %>"></i> <%= service.category_name %></span>
+      <h1><%= service.title %></h1>
+      <p><%= service.description %></p>
+      <div class="detail-price"><%= formatCurrency(service.price) %></div>
+      <dl class="detail-list">
+        <div>
+          <dt>Prestador</dt>
+          <dd><%= service.provider_name %></dd>
+        </div>
+        <div>
+          <dt>Área de atendimento</dt>
+          <dd><%= service.service_area %></dd>
+        </div>
+        <div>
+          <dt>Duração prevista</dt>
+          <dd><%= service.duration_minutes %> minutos</dd>
+        </div>
+        <div>
+          <dt>Telefone</dt>
+          <dd><%= service.provider_phone || 'Não informado' %></dd>
+        </div>
+      </dl>
+      <% if (currentUser && currentUser.role === 'customer') { %>
+        <a class="btn btn-primary" href="/contratante/solicitar/<%= service.id %>">Solicitar serviço</a>
+      <% } else if (!currentUser) { %>
+        <a class="btn btn-primary" href="/entrar">Entrar para contratar</a>
+      <% } %>
+    </div>
+  </section>
+
+  <% if (related.length) { %>
+    <section class="related-section">
+      <h2>Serviços relacionados</h2>
+      <div class="service-grid compact-grid">
+        <% related.forEach((item) => { %>
+          <%- include('partials/service-card', { service: item }) %>
+        <% }) %>
+      </div>
+    </section>
+  <% } %>
+</main>
+
+<%- include('partials/footer') %>

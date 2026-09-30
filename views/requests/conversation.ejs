@@ -1,0 +1,56 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<main class="app-main conversation-main" id="conversation" data-request-id="<%= request.id %>" data-user-id="<%= currentUser.id %>" data-after="<%= messages.length ? messages[messages.length - 1].id : 0 %>" data-signature="<%= signature %>">
+  <section class="dashboard-head">
+    <div>
+      <p class="eyebrow">Solicitação #<%= request.id %></p>
+      <h1><%= request.service_title %></h1>
+      <p class="page-subtitle"><%= request.customer_name %> <span aria-hidden="true">&middot;</span> <%= request.provider_name %></p>
+    </div>
+    <a class="btn btn-outline-secondary" href="<%= backPath %>"><i class="fa fa-arrow-left" aria-hidden="true"></i> Voltar ao painel</a>
+  </section>
+
+  <div class="conversation-layout">
+    <section class="chat-panel" aria-label="Conversa do atendimento">
+      <header class="chat-heading">
+        <div class="chat-person"><span class="person-icon"><i class="fa fa-comments-o" aria-hidden="true"></i></span><div><h2>Conversa</h2><span id="connection-status" role="status">Atualizada</span></div></div>
+        <span id="request-status" class="badge badge-<%= statusClass(request.status) %>"><%= statusLabel(request.status) %></span>
+      </header>
+      <div class="message-list" id="message-list" role="log" aria-live="polite" aria-relevant="additions" tabindex="0">
+        <% if (!messages.length) { %><div class="chat-empty" id="chat-empty"><i class="fa fa-comment-o" aria-hidden="true"></i><h3>A conversa começa aqui</h3><p>Combine os detalhes deste atendimento.</p></div><% } %>
+        <% messages.forEach((message) => { %>
+          <article class="message <%= message.kind === 'system' ? 'message-system' : message.sender_id === currentUser.id ? 'message-own' : 'message-other' %>" data-message-id="<%= message.id %>">
+            <div class="message-meta"><strong><%= message.sender_name %></strong><time datetime="<%= message.created_at.replace(' ', 'T') %>Z"><%= formatMessageDate(message.created_at) %></time></div>
+            <p><%= message.body %></p>
+          </article>
+        <% }) %>
+      </div>
+      <div class="chat-error" id="chat-error" role="alert" hidden></div>
+      <% if (currentUser.role !== 'admin') { %>
+        <form class="message-composer" id="message-form" action="/solicitacoes/<%= request.id %>/mensagens" method="post">
+          <label class="sr-only" for="message-body">Mensagem</label>
+          <textarea class="form-control" id="message-body" name="body" rows="2" maxlength="2000" autocapitalize="sentences" placeholder="Escreva sua mensagem..." required <%= !canSend ? 'disabled' : '' %>></textarea>
+          <button class="btn btn-primary send-button" type="submit" title="Enviar mensagem" aria-label="Enviar mensagem" <%= !canSend ? 'disabled' : '' %>><i class="fa fa-paper-plane" aria-hidden="true"></i></button>
+        </form>
+      <% } %>
+      <p class="chat-readonly" id="chat-readonly" <%= canSend ? 'hidden' : '' %>><%= currentUser.role === 'admin' ? 'Consulta administrativa da conversa.' : 'A conversa deste atendimento foi encerrada.' %></p>
+    </section>
+
+    <aside class="conversation-sidebar">
+      <section class="request-summary">
+        <p class="eyebrow">Atendimento</p>
+        <dl>
+          <div><dt>Data e horário</dt><dd><%= formatDate(request.scheduled_date) %></dd></div>
+          <div><dt>Endereço</dt><dd><%= request.address %></dd></div>
+          <div><dt id="request-price-label"><%= request.agreed_price !== null ? 'Valor combinado' : 'Preço anunciado' %></dt><dd class="request-price" id="request-price"><%= formatCurrency(request.agreed_price ?? request.listed_price) %></dd></div>
+        </dl>
+        <% if (request.notes) { %><div class="request-notes"><strong>Observações do cliente</strong><p><%= request.notes %></p></div><% } %>
+      </section>
+      <div id="negotiation-panel"><%- include('negotiation') %></div>
+    </aside>
+  </div>
+</main>
+<script src="/public/js/conversation.js" defer></script>
+<%- include('../partials/footer') %>

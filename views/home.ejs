@@ -1,0 +1,33 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+<%- include('partials/flash') %>
+
+<section class="catalog-band">
+  <div class="page-width catalog-top">
+    <div><p class="eyebrow">Sua casa, nossa prioridade</p><h1><%= selectedProvider ? `Serviços de ${selectedProvider.name}` : 'Serviços para o seu lar' %></h1><p class="page-subtitle">Encontre cuidado, praticidade e bons profissionais perto de você.</p></div>
+    <div class="catalog-overview">
+      <div class="metric-row"><div class="metric"><span><%= stats.services %></span><small>Serviços</small></div><div class="metric"><span><%= stats.providers %></span><small>Prestadores</small></div><div class="metric"><span><%= stats.requests %></span><small>Solicitações</small></div></div>
+      <% if (currentUser && ['admin', 'provider'].includes(currentUser.role)) { %><a class="btn btn-primary" href="<%= currentUser.role === 'admin' ? '/admin/servicos/novo' : '/prestador/servicos/novo' %>"><i class="fa fa-plus" aria-hidden="true"></i> Novo serviço</a><% } else if (!currentUser) { %><a class="provider-invite" href="/cadastro?perfil=prestador">Oferecer meus serviços <i class="fa fa-arrow-right" aria-hidden="true"></i></a><% } %>
+    </div>
+  </div>
+</section>
+
+<main class="app-main catalog-main">
+  <div class="catalog-tabs"><a class="active" href="<%= servicesUrl %>">Serviços</a><a href="<%= providersUrl %>">Prestadores</a></div>
+  <%- include('partials/catalog-filters', { action: '/' }) %>
+  <section class="catalog-layout">
+    <aside class="side-panel">
+      <h2>Categorias</h2><a class="<%= !filters.category ? 'active' : '' %>" href="<%= categoryUrl(null) %>"><i class="fa fa-th-large" aria-hidden="true"></i><span>Todas as categorias</span></a>
+      <% categories.forEach((category) => { %><a class="<%= Number(filters.category) === Number(category.id) ? 'active' : '' %>" href="<%= categoryUrl(category.id) %>"><i class="fa <%= category.icon || 'fa-tag' %>" aria-hidden="true"></i><span><%= category.name %></span></a><% }) %>
+    </aside>
+    <div class="catalog-results">
+      <div class="section-title-row"><h2>Serviços disponíveis</h2><span class="result-count">Resultados: <%= services.length %></span></div>
+      <div class="service-grid">
+        <% if (services.length) { %><% services.forEach((service) => { %><%- include('partials/service-card', { service }) %><% }) %><% } else { %>
+          <div class="empty-state"><i class="fa fa-search" aria-hidden="true"></i><h2>Nenhum serviço encontrado</h2><p><%= filters.location ? 'Nenhum prestador com localização cadastrada neste raio. Amplie a distância ou altere os filtros.' : 'Altere os filtros para encontrar outros serviços.' %></p><a class="btn btn-outline-secondary" href="/">Ver todos os serviços</a></div>
+        <% } %>
+      </div>
+    </div>
+  </section>
+</main>
+<%- include('partials/footer') %>

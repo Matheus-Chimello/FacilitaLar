@@ -1,0 +1,31 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+<%- include('partials/flash') %>
+
+<main class="app-main narrow-main">
+  <section class="form-panel">
+    <div class="form-heading">
+      <p class="eyebrow">Acesso</p>
+      <h1>Entrar</h1>
+    </div>
+    <form action="/entrar" method="post">
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input class="form-control" id="email" name="email" type="email" value="<%= form.email || '' %>" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Senha</label>
+        <input class="form-control" id="password" name="password" type="password" required>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">Entrar</button>
+    </form>
+    <div class="helper-box">
+      <strong>Acesso demo</strong>
+      <span>Admin: admin@facilitalar.com / admin123</span>
+      <span>Prestador: ana@facilitalar.com / provider123</span>
+    </div>
+    <p class="form-link">Ainda não tem conta? <a href="/cadastro">Criar cadastro</a></p>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

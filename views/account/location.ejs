@@ -1,0 +1,31 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+<main class="app-main narrow-main">
+  <section class="form-panel location-panel">
+    <div class="form-heading"><p class="eyebrow">Prestador</p><h1>Minha localização</h1></div>
+    <form action="/prestador/localizacao" method="post" id="provider-location">
+      <div class="location-preview">
+        <i class="fa fa-map-marker" aria-hidden="true"></i>
+        <div>
+          <strong>Ponto de atendimento</strong>
+          <span id="location-status" role="status"><%= currentUser.latitude !== null && currentUser.longitude !== null ? (currentUser.postal_code ? `CEP cadastrado: ${currentUser.postal_code}` : 'Localização cadastrada') : 'Localização não cadastrada' %></span>
+        </div>
+        <button class="btn btn-outline-primary" type="button" data-locate="provider"><i class="fa fa-crosshairs" aria-hidden="true"></i> Usar localização atual</button>
+      </div>
+      <div class="form-group">
+        <label for="postal_code">CEP do ponto de atendimento</label>
+        <input class="form-control" id="postal_code" name="postal_code" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="9" pattern="[0-9]{5}-?[0-9]{3}" value="<%= form.postal_code || '' %>" placeholder="00000-000" data-cep required>
+      </div>
+      <div class="form-group">
+        <label for="location_address">Número ou referência (opcional)</label>
+        <input class="form-control" id="location_address" name="location_address" maxlength="200" value="<%= form.location_address || '' %>" placeholder="Número, complemento ou ponto de atendimento">
+      </div>
+      <input type="hidden" name="latitude" value="<%= form === currentUser ? '' : form.latitude || '' %>">
+      <input type="hidden" name="longitude" value="<%= form === currentUser ? '' : form.longitude || '' %>">
+      <div class="button-row"><a class="btn btn-outline-secondary" href="/prestador">Voltar</a><button class="btn btn-primary" type="submit"><i class="fa fa-check" aria-hidden="true"></i> Salvar localização</button></div>
+    </form>
+    <% if (currentUser.latitude !== null && currentUser.longitude !== null) { %><form action="/prestador/localizacao/remover" method="post" class="remove-location"><button class="btn btn-link text-danger" type="submit">Remover localização cadastrada</button></form><% } %>
+  </section>
+</main>
+<%- include('../partials/footer') %>

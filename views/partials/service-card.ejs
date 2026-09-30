@@ -1,0 +1,26 @@
+<article class="service-card">
+  <a class="service-image" href="/servicos/<%= service.id %>">
+    <img src="<%= service.image || '/assets/images/services-bg.jpg' %>" alt="<%= service.title %>">
+  </a>
+  <div class="service-body">
+    <div class="service-meta">
+      <span><i class="fa <%= service.category_icon || 'fa-tag' %>"></i> <%= service.category_name %></span>
+      <strong><%= formatCurrency(service.price) %></strong>
+    </div>
+    <h3><a href="/servicos/<%= service.id %>"><%= service.title %></a></h3>
+    <p><%= service.description %></p>
+    <div class="service-provider">
+      <span><i class="fa fa-user"></i> <%= service.provider_name %></span>
+      <span><i class="fa fa-map-marker"></i> <%= service.service_area %></span>
+      <% if (service.distance !== undefined) { %><span class="distance-badge"><i class="fa fa-location-arrow" aria-hidden="true"></i> A <%= formatDistance(service.distance) %> de você</span><% } %>
+    </div>
+    <div class="service-actions">
+      <a class="btn btn-outline-secondary btn-sm" href="/servicos/<%= service.id %>">Detalhes</a>
+      <% if (currentUser && currentUser.role === 'customer') { %>
+        <a class="btn btn-primary btn-sm" href="/contratante/solicitar/<%= service.id %>">Solicitar</a>
+      <% } else if (!currentUser) { %>
+        <a class="btn btn-primary btn-sm" href="/entrar">Contratar</a>
+      <% } %>
+    </div>
+  </div>
+</article>

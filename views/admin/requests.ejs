@@ -1,0 +1,59 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<main class="app-main">
+  <section class="dashboard-head">
+    <div>
+      <p class="eyebrow">Administração</p>
+      <h1>Solicitações</h1>
+    </div>
+    <a class="btn btn-outline-secondary" href="/admin">Voltar</a>
+  </section>
+
+  <section class="table-panel">
+    <div class="responsive-table">
+      <table class="table app-table">
+        <thead>
+          <tr>
+            <th>Serviço</th>
+            <th>Contratante</th>
+            <th>Prestador</th>
+            <th>Data</th>
+            <th>Status</th>
+            <th>Conversa</th>
+            <th>Alterar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% requests.forEach((request) => { %>
+            <tr>
+              <td>
+                <strong><%= request.service_title %></strong>
+                <small><%= request.address %></small>
+              </td>
+              <td><%= request.customer_name %></td>
+              <td><%= request.provider_name %></td>
+              <td><%= formatDate(request.scheduled_date) %></td>
+              <td><span class="badge badge-<%= statusClass(request.status) %>"><%= statusLabel(request.status) %></span></td>
+              <td><a class="btn btn-sm btn-outline-primary" href="/solicitacoes/<%= request.id %>/conversa"><i class="fa fa-comments-o" aria-hidden="true"></i> Consultar</a></td>
+              <td>
+                <% if (nextStatuses[request.status].length) { %><form action="/admin/solicitacoes/<%= request.id %>/status" method="post" class="inline-status-form">
+                  <select class="form-control form-control-sm" name="status">
+                    <option value="">Alterar status</option>
+                    <% nextStatuses[request.status].forEach((status) => { %>
+                      <option value="<%= status %>"><%= statusLabel(status) %></option>
+                    <% }) %>
+                  </select>
+                  <button class="btn btn-sm btn-primary" type="submit">Salvar</button>
+                </form><% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

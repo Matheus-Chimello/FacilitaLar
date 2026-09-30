@@ -1,0 +1,67 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<main class="app-main agenda-main">
+  <section class="dashboard-head">
+    <div><p class="eyebrow">Prestador</p><h1>Minha agenda</h1></div>
+    <a class="btn btn-outline-secondary" href="/prestador">Voltar ao painel</a>
+  </section>
+
+  <section class="schedule-section">
+    <h2>Horários semanais</h2>
+    <form action="/prestador/agenda" method="post">
+      <div class="schedule-days">
+        <% weekdays.forEach((day) => { %>
+          <div class="schedule-day">
+            <strong><%= day.name %></strong>
+            <% [0, 1].forEach((period) => { %>
+              <fieldset class="schedule-period">
+                <legend><%= period === 0 ? '1º período' : '2º período' %></legend>
+                <label><span>Início</span><input class="form-control" type="time" name="start_<%= day.id %>_<%= period %>" step="1800" value="<%= form[`start_${day.id}_${period}`] || '' %>"></label>
+                <label><span>Fim</span><input class="form-control" type="time" name="end_<%= day.id %>_<%= period %>" step="1800" value="<%= form[`end_${day.id}_${period}`] || '' %>"></label>
+              </fieldset>
+            <% }) %>
+          </div>
+        <% }) %>
+      </div>
+      <div class="schedule-actions"><button class="btn btn-primary" type="submit"><i class="fa fa-check" aria-hidden="true"></i> Salvar horários</button></div>
+    </form>
+  </section>
+
+  <section class="schedule-section">
+    <h2>Dias bloqueados</h2>
+    <form action="/prestador/agenda/bloqueios" method="post" class="block-day-form">
+      <label for="day-off">Data</label>
+      <input class="form-control" id="day-off" name="date" type="date" min="<%= minDate %>" max="<%= maxOffDate %>" required>
+      <button class="btn btn-outline-primary" type="submit"><i class="fa fa-ban" aria-hidden="true"></i> Bloquear dia</button>
+    </form>
+    <% if (blockedDays.length) { %>
+      <ul class="blocked-days"><% blockedDays.forEach((item) => { %>
+        <li><time datetime="<%= item.date %>"><%= item.date.slice(8, 10) %>/<%= item.date.slice(5, 7) %>/<%= item.date.slice(0, 4) %></time><form action="/prestador/agenda/bloqueios/<%= item.date %>/remover" method="post"><button class="btn btn-link btn-sm" type="submit" aria-label="Remover bloqueio de <%= item.date %>"><i class="fa fa-times" aria-hidden="true"></i> Remover</button></form></li>
+      <% }) %></ul>
+    <% } else { %><p class="schedule-empty">Nenhum dia bloqueado.</p><% } %>
+  </section>
+
+  <section class="schedule-section">
+    <div class="section-title-row"><h2>Próximos atendimentos</h2><span class="result-count"><%= upcoming.length %> agendados</span></div>
+    <% if (upcoming.length) { %>
+      <div class="responsive-table"><table class="table app-table schedule-table"><thead><tr><th>Data</th><th>Serviço</th><th>Contratante</th><th>Status</th><th></th></tr></thead><tbody>
+        <% upcoming.forEach((request) => { %><tr>
+          <td><strong><%= formatDate(request.scheduled_date) %></strong></td>
+          <td><%= request.service_title %></td>
+          <td><%= request.customer_name %></td>
+          <td><span class="badge badge-<%= statusClass(request.status) %>"><%= statusLabel(request.status) %></span></td>
+          <td class="schedule-row-actions"><a class="btn btn-sm btn-outline-secondary" href="/solicitacoes/<%= request.id %>/conversa"><i class="fa fa-comments-o" aria-hidden="true"></i> Conversar</a>
+            <% if (request.status === 'pending') { %>
+              <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><input type="hidden" name="return_to" value="/prestador/agenda"><button class="btn btn-sm btn-primary" type="submit" name="status" value="accepted">Confirmar</button></form>
+              <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><input type="hidden" name="return_to" value="/prestador/agenda"><button class="btn btn-sm btn-outline-danger" type="submit" name="status" value="canceled">Recusar</button></form>
+            <% } %>
+          </td>
+        </tr><% }) %>
+      </tbody></table></div>
+    <% } else { %><p class="schedule-empty">Nenhum atendimento futuro.</p><% } %>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

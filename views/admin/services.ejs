@@ -1,0 +1,56 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<main class="app-main">
+  <section class="dashboard-head">
+    <div>
+      <p class="eyebrow">Administração</p>
+      <h1>Serviços</h1>
+    </div>
+    <div class="button-row">
+      <a class="btn btn-outline-secondary" href="/admin">Voltar</a>
+      <a class="btn btn-primary" href="/admin/servicos/novo"><i class="fa fa-plus" aria-hidden="true"></i> Novo serviço</a>
+    </div>
+  </section>
+
+  <section class="table-panel">
+    <div class="responsive-table">
+      <table class="table app-table">
+        <thead>
+          <tr>
+            <th>Serviço</th>
+            <th>Categoria</th>
+            <th>Prestador</th>
+            <th>Preço</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% services.forEach((service) => { %>
+            <tr>
+              <td>
+                <div class="table-service">
+                  <img src="<%= service.image || '/assets/images/services-bg.jpg' %>" alt="">
+                  <strong><%= service.title %></strong>
+                </div>
+              </td>
+              <td><%= service.category_name %></td>
+              <td><%= service.provider_name %></td>
+              <td><%= formatCurrency(service.price) %></td>
+              <td><span class="badge badge-<%= service.active ? 'success' : 'secondary' %>"><%= service.active ? 'Ativo' : 'Inativo' %></span></td>
+              <td class="text-right">
+                <form action="/admin/servicos/<%= service.id %>/status" method="post">
+                  <button class="btn btn-sm btn-outline-primary" type="submit"><%= service.active ? 'Desativar' : 'Ativar' %></button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,16 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+<%- include('partials/flash') %>
+<section class="catalog-band"><div class="page-width catalog-top"><div><p class="eyebrow">Quem cuida do seu lar</p><h1>Encontre um prestador</h1><p class="page-subtitle">Profissionais e serviços na sua região.</p></div><span class="band-icon"><i class="fa fa-map-marker" aria-hidden="true"></i></span></div></section>
+<main class="app-main catalog-main">
+  <div class="catalog-tabs"><a href="<%= servicesUrl %>">Serviços</a><a class="active" href="<%= providersUrl %>">Prestadores</a></div>
+  <%- include('partials/catalog-filters', { action: '/prestadores' }) %>
+  <div class="section-title-row"><h2><%= filters.location ? 'Prestadores próximos' : 'Prestadores disponíveis' %></h2><span class="result-count">Resultados: <%= providers.length %></span></div>
+  <div class="provider-grid">
+    <% providers.forEach((provider) => { %>
+      <article class="provider-card"><img class="provider-cover" src="<%= provider.image %>" alt="Serviços de <%= provider.name %>"><div class="provider-card-body"><div class="provider-card-heading"><span class="provider-avatar"><%= provider.name.split(' ').slice(0, 2).map((name) => name[0]).join('') %></span><div><h3><%= provider.name %></h3><span><i class="fa fa-map-marker" aria-hidden="true"></i> <%= provider.city || 'Região não informada' %></span></div></div><p><%= provider.bio || 'Prestador de serviços do Facilita Lar.' %></p><div class="provider-tags"><% [...new Set(provider.services.map((service) => service.category_name))].forEach((name) => { %><span><%= name %></span><% }) %></div><div class="provider-card-footer"><span><%= provider.distance !== undefined ? `${formatDistance(provider.distance)} de você` : `${provider.services.length} ${provider.services.length === 1 ? 'Serviço' : 'Serviços'}` %></span><a class="btn btn-primary btn-sm" href="<%= providerUrl(provider.id) %>">Ver serviços <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div></article>
+    <% }) %>
+    <% if (!providers.length) { %><div class="empty-state"><i class="fa fa-map-marker" aria-hidden="true"></i><h2>Nenhum prestador encontrado</h2><p><%= filters.location ? 'Amplie o raio de busca ou altere a categoria.' : 'Altere os filtros para encontrar outros profissionais.' %></p><a class="btn btn-outline-secondary" href="/prestadores">Ver todos os prestadores</a></div><% } %>
+  </div>
+</main>
+<%- include('partials/footer') %>

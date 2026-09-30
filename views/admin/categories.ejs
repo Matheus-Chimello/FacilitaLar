@@ -1,0 +1,73 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<main class="app-main">
+  <section class="dashboard-head">
+    <div>
+      <p class="eyebrow">Administração</p>
+      <h1>Categorias</h1>
+    </div>
+    <a class="btn btn-outline-secondary" href="/admin">Voltar</a>
+  </section>
+
+  <section class="split-form-layout align-start">
+    <section class="form-panel">
+      <div class="form-heading">
+        <h2><%= editing ? 'Editar categoria' : 'Nova categoria' %></h2>
+      </div>
+      <form action="<%= editing ? `/admin/categorias/${editing.id}` : '/admin/categorias' %>" method="post">
+        <div class="form-group">
+          <label for="name">Nome</label>
+          <input class="form-control" id="name" name="name" value="<%= form.name || '' %>" required>
+        </div>
+        <div class="form-group">
+          <label for="icon">Ícone FontAwesome</label>
+          <input class="form-control" id="icon" name="icon" value="<%= form.icon || 'fa-tag' %>">
+        </div>
+        <div class="form-group">
+          <label for="description">Descrição</label>
+          <textarea class="form-control" id="description" name="description" rows="4"><%= form.description || '' %></textarea>
+        </div>
+        <div class="button-row">
+          <% if (editing) { %>
+            <a class="btn btn-outline-secondary" href="/admin/categorias">Cancelar</a>
+          <% } %>
+          <button class="btn btn-primary" type="submit">Salvar</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="table-panel stretch-panel">
+      <div class="responsive-table">
+        <table class="table app-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Descrição</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% categories.forEach((category) => { %>
+              <tr>
+                <td><i class="fa <%= category.icon || 'fa-tag' %>"></i> <strong><%= category.name %></strong></td>
+                <td><%= category.description || '-' %></td>
+                <td><span class="badge badge-<%= category.active ? 'success' : 'secondary' %>"><%= category.active ? 'Ativa' : 'Inativa' %></span></td>
+                <td class="actions-cell">
+                  <a class="btn btn-sm btn-outline-secondary" href="/admin/categorias/<%= category.id %>/editar">Editar</a>
+                  <form action="/admin/categorias/<%= category.id %>/status" method="post">
+                    <button class="btn btn-sm btn-outline-primary" type="submit"><%= category.active ? 'Desativar' : 'Ativar' %></button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,131 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<main class="app-main">
+  <section class="dashboard-head">
+    <div>
+      <p class="eyebrow">Prestador</p>
+      <h1>Meus serviços e atendimentos</h1>
+    </div>
+    <div class="button-row">
+      <a class="btn btn-outline-secondary" href="/prestador/agenda"><i class="fa fa-calendar" aria-hidden="true"></i> Minha agenda</a>
+      <a class="btn btn-outline-secondary" href="/prestador/localizacao"><i class="fa fa-map-marker" aria-hidden="true"></i> Minha localização</a>
+      <a class="btn btn-primary" href="/prestador/servicos/novo"><i class="fa fa-plus" aria-hidden="true"></i> Novo serviço</a>
+    </div>
+  </section>
+
+  <% if (currentUser.latitude === null || currentUser.longitude === null) { %><div class="location-reminder"><i class="fa fa-map-marker" aria-hidden="true"></i><span>Cadastre seu ponto de atendimento para aparecer na busca por proximidade.</span><a href="/prestador/localizacao">Cadastrar localização <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div><% } %>
+  <% if (!hasAvailability) { %><div class="location-reminder"><i class="fa fa-calendar" aria-hidden="true"></i><span>Defina seus horários para receber novas solicitações.</span><a href="/prestador/agenda">Configurar agenda <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div><% } %>
+
+  <section class="metric-row dashboard-metrics">
+    <div class="metric">
+      <span><%= stats.services %></span>
+      <small>Cadastrados</small>
+    </div>
+    <div class="metric">
+      <span><%= stats.activeServices %></span>
+      <small>Ativos</small>
+    </div>
+    <div class="metric">
+      <span><%= stats.pending %></span>
+      <small>Pendentes</small>
+    </div>
+    <div class="metric">
+      <span><%= stats.completed %></span>
+      <small>Concluídos</small>
+    </div>
+  </section>
+
+  <section class="section-stack">
+    <div class="section-title-row">
+      <h2>Serviços cadastrados</h2>
+      <a href="/prestador/servicos/novo">Cadastrar</a>
+    </div>
+    <% if (services.length) { %>
+      <div class="admin-grid">
+        <% services.forEach((service) => { %>
+          <article class="manage-card">
+            <img src="<%= service.image || '/assets/images/services-bg.jpg' %>" alt="">
+            <div>
+              <span class="badge badge-<%= service.active ? 'success' : 'secondary' %>"><%= service.active ? 'Ativo' : 'Pausado' %></span>
+              <h3><%= service.title %></h3>
+              <p><%= service.category_name %> · <%= formatCurrency(service.price) %></p>
+            </div>
+            <div class="button-row">
+              <a class="btn btn-sm btn-outline-secondary" href="/prestador/servicos/<%= service.id %>/editar">Editar</a>
+              <form action="/prestador/servicos/<%= service.id %>/status" method="post">
+                <button class="btn btn-sm btn-outline-primary" type="submit"><%= service.active ? 'Pausar' : 'Ativar' %></button>
+              </form>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <h2>Nenhum serviço cadastrado</h2>
+        <p>Cadastre seu primeiro serviço para aparecer no catálogo.</p>
+      </div>
+    <% } %>
+  </section>
+
+  <section class="table-panel">
+    <div class="section-title-row">
+      <h2>Solicitações recebidas</h2>
+    </div>
+    <% if (requests.length) { %>
+      <div class="responsive-table">
+        <table class="table app-table">
+          <thead>
+            <tr>
+              <th>Serviço</th>
+              <th>Contratante</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Conversa</th>
+              <th>Alterar</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% requests.forEach((request) => { %>
+              <tr>
+                <td>
+                  <strong><%= request.service_title %></strong>
+                  <small><%= request.address %></small>
+                </td>
+                <td>
+                  <%= request.customer_name %>
+                  <small><%= request.customer_phone || '' %></small>
+                </td>
+                <td><%= formatDate(request.scheduled_date) %></td>
+                <td><span class="badge badge-<%= statusClass(request.status) %>"><%= statusLabel(request.status) %></span></td>
+                <td><a class="btn btn-sm btn-outline-primary chat-link" href="/solicitacoes/<%= request.id %>/conversa"><i class="fa fa-comments-o" aria-hidden="true"></i> Conversar <% if (request.unread_count) { %><span class="unread-badge" aria-label="<%= request.unread_count === 1 ? 'Uma mensagem não lida' : `${request.unread_count} mensagens não lidas` %>"><%= request.unread_count %></span><% } %></a></td>
+                <td>
+                  <div class="request-actions">
+                    <% if (request.status === 'pending') { %>
+                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><button class="btn btn-sm btn-primary" type="submit" name="status" value="accepted"><i class="fa fa-check" aria-hidden="true"></i> Confirmar</button></form>
+                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><button class="btn btn-sm btn-outline-danger" type="submit" name="status" value="canceled">Recusar</button></form>
+                    <% } else if (request.status === 'accepted') { %>
+                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><button class="btn btn-sm btn-outline-primary" type="submit" name="status" value="in_progress">Iniciar</button></form>
+                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><button class="btn btn-sm btn-outline-danger" type="submit" name="status" value="canceled">Cancelar</button></form>
+                    <% } else if (request.status === 'in_progress') { %>
+                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><button class="btn btn-sm btn-outline-primary" type="submit" name="status" value="completed">Concluir</button></form>
+                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><button class="btn btn-sm btn-outline-danger" type="submit" name="status" value="canceled">Cancelar</button></form>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } else { %>
+      <div class="empty-state">
+        <h2>Nenhuma solicitação recebida</h2>
+        <p>As novas contratações aparecem aqui.</p>
+      </div>
+    <% } %>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

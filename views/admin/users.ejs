@@ -1,0 +1,50 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<main class="app-main">
+  <section class="dashboard-head">
+    <div>
+      <p class="eyebrow">Administração</p>
+      <h1>Usuários</h1>
+    </div>
+    <a class="btn btn-outline-secondary" href="/admin">Voltar</a>
+  </section>
+
+  <section class="table-panel">
+    <div class="responsive-table">
+      <table class="table app-table">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Perfil</th>
+            <th>Cidade</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% users.forEach((user) => { %>
+            <tr>
+              <td><strong><%= user.name %></strong></td>
+              <td><%= user.email %></td>
+              <td><%= roleLabels[user.role] %></td>
+              <td><%= user.city || '-' %></td>
+              <td><span class="badge badge-<%= user.active ? 'success' : 'secondary' %>"><%= user.active ? 'Ativo' : 'Inativo' %></span></td>
+              <td class="text-right">
+                <% if (currentUser.id !== user.id) { %>
+                  <form action="/admin/usuarios/<%= user.id %>/status" method="post">
+                    <button class="btn btn-sm btn-outline-primary" type="submit"><%= user.active ? 'Desativar' : 'Ativar' %></button>
+                  </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>

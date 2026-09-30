@@ -1,0 +1,51 @@
+<% const active = (target) => path === target || (target !== '/' && path.startsWith(target)); %>
+<header class="app-header">
+  <nav class="navbar navbar-expand-lg navbar-light app-navbar">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/" aria-label="Facilita Lar, página inicial">
+        <span class="brand-logo"><img src="/assets/images/logo%203%20p%202.png" alt="" width="2560" height="1707"></span>
+        <span class="brand-wordmark">Facilita <strong>Lar</strong><small>Sua casa, nossa prioridade</small></span>
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Abrir menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNav">
+        <ul class="navbar-nav ml-auto align-items-lg-center">
+          <li class="nav-item">
+            <a class="nav-link <%= active('/') ? 'active' : '' %>" href="/">Serviços</a>
+          </li>
+          <li class="nav-item"><a class="nav-link <%= active('/prestadores') ? 'active' : '' %>" href="/prestadores">Prestadores</a></li>
+          <li class="nav-item">
+            <a class="nav-link <%= active('/sobre') ? 'active' : '' %>" href="/sobre">Sobre</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= active('/contato') ? 'active' : '' %>" href="/contato">Contato</a>
+          </li>
+          <% if (currentUser) { %>
+            <li class="nav-item">
+              <a class="nav-link <%= active(currentUser.role === 'admin' ? '/admin' : currentUser.role === 'provider' ? '/prestador' : '/contratante') ? 'active' : '' %>" href="<%= currentUser.role === 'admin' ? '/admin' : currentUser.role === 'provider' ? '/prestador' : '/contratante' %>">
+                Painel
+              </a>
+            </li>
+            <li class="nav-item user-chip">
+              <span><%= currentUser.name %></span>
+              <small><%= roleLabels[currentUser.role] %></small>
+            </li>
+            <li class="nav-item">
+              <form action="/sair" method="post" class="mb-0">
+                <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="fa fa-sign-out" aria-hidden="true"></i> Sair</button>
+              </form>
+            </li>
+          <% } else { %>
+            <li class="nav-item">
+              <a class="btn btn-sm btn-outline-secondary mr-lg-2" href="/entrar">Entrar</a>
+            </li>
+            <li class="nav-item">
+              <a class="btn btn-sm btn-primary" href="/cadastro">Criar conta</a>
+            </li>
+          <% } %>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>

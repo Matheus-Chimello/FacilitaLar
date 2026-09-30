@@ -1,0 +1,12 @@
+<section class="catalog-tools">
+  <form action="<%= action %>" method="get" class="catalog-search" id="catalog-filter">
+    <label for="catalog-query"><span>O que você precisa?</span><div class="search-input"><i class="fa fa-search" aria-hidden="true"></i><input class="form-control" id="catalog-query" type="search" name="q" value="<%= filters.q %>" placeholder="Eletricista, limpeza, jardinagem..."></div></label>
+    <label for="catalog-category"><span>Categoria</span><select class="form-control" id="catalog-category" name="category"><option value="">Todas as categorias</option><% categories.forEach((category) => { %><option value="<%= category.id %>" <%= Number(filters.category) === Number(category.id) ? 'selected' : '' %>><%= category.name %></option><% }) %></select></label>
+    <label for="catalog-cep"><span>CEP da busca</span><input class="form-control" id="catalog-cep" name="cep" type="text" inputmode="numeric" autocomplete="postal-code" maxlength="9" pattern="[0-9]{5}-?[0-9]{3}" value="<%= filters.cep %>" placeholder="00000-000" data-cep></label>
+    <label for="catalog-radius"><span>Raio de busca</span><select class="form-control" id="catalog-radius" name="radius"><% radiusOptions.forEach((radius) => { %><option value="<%= radius %>" <%= Number(filters.radius) === radius ? 'selected' : '' %>><%= radius %> km</option><% }) %></select></label>
+    <input type="hidden" name="latitude" value="<%= filters.latitude %>"><input type="hidden" name="longitude" value="<%= filters.longitude %>">
+    <% if (filters.providerId) { %><input type="hidden" name="prestador" value="<%= filters.providerId %>"><% } %>
+    <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i> Buscar</button>
+    <div class="location-tools"><button class="btn btn-location" type="button" data-locate="search"><i class="fa fa-crosshairs" aria-hidden="true"></i> Usar minha localização</button><span class="location-status" id="location-status" role="status"><%= filters.locationError || filters.locationLabel || 'Todas as regiões' %></span><% if (filters.location || filters.cep) { %><button class="btn btn-link btn-sm" type="button" data-clear-location>Remover localização</button><% } %><% if (filters.q || filters.category || filters.providerId) { %><a class="btn btn-link btn-sm" href="<%= action %>">Limpar filtros</a><% } %></div>
+  </form>
+</section>
