@@ -30,6 +30,7 @@
       <div class="chat-error" id="chat-error" role="alert" hidden></div>
       <% if (currentUser.role !== 'admin') { %>
         <form class="message-composer" id="message-form" action="/solicitacoes/<%= request.id %>/mensagens" method="post">
+          <%- include('../partials/csrf') %>
           <label class="sr-only" for="message-body">Mensagem</label>
           <textarea class="form-control" id="message-body" name="body" rows="2" maxlength="2000" autocapitalize="sentences" placeholder="Escreva sua mensagem..." required <%= !canSend ? 'disabled' : '' %>></textarea>
           <button class="btn btn-primary send-button" type="submit" title="Enviar mensagem" aria-label="Enviar mensagem" <%= !canSend ? 'disabled' : '' %>><i class="fa fa-paper-plane" aria-hidden="true"></i></button>

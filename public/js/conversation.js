@@ -83,7 +83,7 @@
     form.querySelector('button').disabled = true;
     showError('');
     try {
-      const response = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: new URLSearchParams({ body }) });
+      const response = await fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, body: new URLSearchParams(new FormData(form)) });
       if (response.redirected) { window.location.assign(response.url); return; }
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Não foi possível enviar a mensagem.');

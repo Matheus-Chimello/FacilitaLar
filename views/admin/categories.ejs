@@ -17,6 +17,7 @@
         <h2><%= editing ? 'Editar categoria' : 'Nova categoria' %></h2>
       </div>
       <form action="<%= editing ? `/admin/categorias/${editing.id}` : '/admin/categorias' %>" method="post">
+        <%- include('../partials/csrf') %>
         <div class="form-group">
           <label for="name">Nome</label>
           <input class="form-control" id="name" name="name" value="<%= form.name || '' %>" required>
@@ -58,6 +59,7 @@
                 <td class="actions-cell">
                   <a class="btn btn-sm btn-outline-secondary" href="/admin/categorias/<%= category.id %>/editar">Editar</a>
                   <form action="/admin/categorias/<%= category.id %>/status" method="post">
+                    <%- include('../partials/csrf') %>
                     <button class="btn btn-sm btn-outline-primary" type="submit"><%= category.active ? 'Desativar' : 'Ativar' %></button>
                   </form>
                 </td>

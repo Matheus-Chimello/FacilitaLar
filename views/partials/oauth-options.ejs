@@ -1,0 +1,10 @@
+<% if (oauthProviders.length) { %>
+  <div class="auth-options" aria-label="Outras opções de acesso">
+    <% oauthProviders.forEach((provider) => { %>
+      <a class="auth-option" href="/auth/<%= provider.id %><%= providerEntry ? '?perfil=prestador' : '' %>">
+        <i class="fa <%= provider.icon %>" aria-hidden="true"></i><span>Continuar com <%= provider.label %></span>
+      </a>
+    <% }) %>
+  </div>
+  <div class="auth-separator"><span>Ou continue com e-mail</span></div>
+<% } %>

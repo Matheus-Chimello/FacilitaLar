@@ -42,6 +42,7 @@
               <td><span class="badge badge-<%= service.active ? 'success' : 'secondary' %>"><%= service.active ? 'Ativo' : 'Inativo' %></span></td>
               <td class="text-right">
                 <form action="/admin/servicos/<%= service.id %>/status" method="post">
+                  <%- include('../partials/csrf') %>
                   <button class="btn btn-sm btn-outline-primary" type="submit"><%= service.active ? 'Desativar' : 'Ativar' %></button>
                 </form>
               </td>

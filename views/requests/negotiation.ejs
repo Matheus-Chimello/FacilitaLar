@@ -5,6 +5,7 @@
   <% } %>
   <% if (canNegotiate && currentUser.id === request.provider_id) { %>
     <form action="/solicitacoes/<%= request.id %>/propostas" method="post" class="quote-form">
+      <%- include('../partials/csrf') %>
       <div class="form-group"><label for="quote-amount">Proposta de valor (R$)</label><input class="form-control" id="quote-amount" name="amount" type="number" min="0.01" max="1000000" step="0.01" value="<%= quotes[0]?.status === 'pending' ? quotes[0].amount : request.listed_price %>" required></div>
       <div class="form-group"><label for="quote-note">Detalhes da proposta</label><textarea class="form-control" id="quote-note" name="note" rows="3" maxlength="500" autocapitalize="sentences"></textarea></div>
       <button class="btn btn-primary" type="submit"><i class="fa fa-paper-plane" aria-hidden="true"></i> Enviar proposta</button>
@@ -18,7 +19,7 @@
           <% if (quote.note) { %><p><%= quote.note %></p><% } %>
           <time datetime="<%= quote.created_at.replace(' ', 'T') %>Z"><%= formatMessageDate(quote.created_at) %></time>
           <% if (canNegotiate && currentUser.id === request.customer_id && quote.status === 'pending') { %>
-            <form action="/solicitacoes/<%= request.id %>/propostas/<%= quote.id %>/responder" method="post" class="button-row quote-actions"><button class="btn btn-primary btn-sm" type="submit" name="decision" value="accepted"><i class="fa fa-check" aria-hidden="true"></i> Aceitar proposta</button><button class="btn btn-outline-secondary btn-sm" type="submit" name="decision" value="rejected">Recusar</button></form>
+            <form action="/solicitacoes/<%= request.id %>/propostas/<%= quote.id %>/responder" method="post" class="button-row quote-actions"><%- include('../partials/csrf') %><button class="btn btn-primary btn-sm" type="submit" name="decision" value="accepted"><i class="fa fa-check" aria-hidden="true"></i> Aceitar proposta</button><button class="btn btn-outline-secondary btn-sm" type="submit" name="decision" value="rejected">Recusar</button></form>
           <% } %>
         </article>
       <% }) %>

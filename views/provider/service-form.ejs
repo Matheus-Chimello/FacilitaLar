@@ -9,6 +9,7 @@
       <h1><%= service ? 'Editar serviço' : 'Novo serviço' %></h1>
     </div>
     <form action="<%= currentUser.role === 'admin' ? '/admin/servicos' : service ? `/prestador/servicos/${service.id}` : '/prestador/servicos' %>" method="post">
+      <%- include('../partials/csrf') %>
       <% if (currentUser.role === 'admin') { %>
         <div class="form-group">
           <label for="provider_id">Prestador responsável</label>

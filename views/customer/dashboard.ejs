@@ -62,6 +62,7 @@
                 <td class="text-right">
                   <% if (!['completed', 'canceled'].includes(request.status)) { %>
                     <form action="/contratante/solicitacoes/<%= request.id %>/cancelar" method="post">
+                      <%- include('../partials/csrf') %>
                       <button class="btn btn-sm btn-outline-danger" type="submit">Cancelar</button>
                     </form>
                   <% } %>

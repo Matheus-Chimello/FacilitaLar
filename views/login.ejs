@@ -6,25 +6,28 @@
   <section class="form-panel">
     <div class="form-heading">
       <p class="eyebrow">Acesso</p>
-      <h1>Entrar</h1>
+      <h1><%= providerEntry ? 'Acessar conta de prestador' : 'Entrar' %></h1>
     </div>
-    <form action="/entrar" method="post">
+    <%- include('partials/oauth-options') %>
+    <form action="<%= providerEntry ? '/entrar?perfil=prestador' : '/entrar' %>" method="post">
+      <%- include('partials/csrf') %>
       <div class="form-group">
         <label for="email">E-mail</label>
-        <input class="form-control" id="email" name="email" type="email" value="<%= form.email || '' %>" required>
+        <input class="form-control" id="email" name="email" type="email" maxlength="254" autocomplete="email" value="<%= form.email || '' %>" required>
       </div>
       <div class="form-group">
         <label for="password">Senha</label>
-        <input class="form-control" id="password" name="password" type="password" required>
+        <input class="form-control" id="password" name="password" type="password" maxlength="128" autocomplete="current-password" required>
       </div>
       <button class="btn btn-primary btn-block" type="submit">Entrar</button>
     </form>
-    <div class="helper-box">
+    <p class="form-link"><a href="/esqueci-senha">Esqueceu sua senha?</a></p>
+    <% if (!isProduction) { %><div class="helper-box">
       <strong>Acesso demo</strong>
       <span>Admin: admin@facilitalar.com / admin123</span>
       <span>Prestador: ana@facilitalar.com / provider123</span>
-    </div>
-    <p class="form-link">Ainda não tem conta? <a href="/cadastro">Criar cadastro</a></p>
+    </div><% } %>
+    <p class="form-link">Ainda não tem conta? <a href="<%= providerEntry ? '/anunciar' : '/cadastro' %>">Criar cadastro</a></p>
   </section>
 </main>
 

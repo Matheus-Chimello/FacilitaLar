@@ -19,6 +19,7 @@
         <h2>Dados do atendimento</h2>
       </div>
       <form action="/contratante/solicitar/<%= service.id %>" method="post">
+        <%- include('../partials/csrf') %>
         <div class="form-row">
           <div class="form-group col-sm-6">
             <label for="booking-date">Data</label>

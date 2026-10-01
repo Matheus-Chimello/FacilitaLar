@@ -2,17 +2,21 @@
 <%- include('partials/navbar') %>
 <%- include('partials/flash') %>
 
-<section class="catalog-band">
-  <div class="page-width catalog-top">
-    <div><p class="eyebrow">Sua casa, nossa prioridade</p><h1><%= selectedProvider ? `Serviços de ${selectedProvider.name}` : 'Serviços para o seu lar' %></h1><p class="page-subtitle">Encontre cuidado, praticidade e bons profissionais perto de você.</p></div>
-    <div class="catalog-overview">
-      <div class="metric-row"><div class="metric"><span><%= stats.services %></span><small>Serviços</small></div><div class="metric"><span><%= stats.providers %></span><small>Prestadores</small></div><div class="metric"><span><%= stats.requests %></span><small>Solicitações</small></div></div>
-      <% if (currentUser && ['admin', 'provider'].includes(currentUser.role)) { %><a class="btn btn-primary" href="<%= currentUser.role === 'admin' ? '/admin/servicos/novo' : '/prestador/servicos/novo' %>"><i class="fa fa-plus" aria-hidden="true"></i> Novo serviço</a><% } else if (!currentUser) { %><a class="provider-invite" href="/cadastro?perfil=prestador">Oferecer meus serviços <i class="fa fa-arrow-right" aria-hidden="true"></i></a><% } %>
+<section class="catalog-band catalog-band-home">
+  <div class="page-width catalog-top catalog-top-home">
+    <div>
+      <p class="eyebrow">Sua casa, nossa prioridade</p>
+      <h1><%= selectedProvider ? `Serviços de ${selectedProvider.name}` : 'Serviços para o seu lar' %></h1>
+      <p class="page-subtitle">Encontre cuidado, praticidade e bons profissionais perto de você.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary hero-search" href="#buscar-servicos"><i class="fa fa-search" aria-hidden="true"></i> Encontrar serviços</a>
+        <% if (currentUser && ['admin', 'provider'].includes(currentUser.role)) { %><a class="btn btn-outline-secondary provider-invite" href="<%= currentUser.role === 'admin' ? '/admin/servicos/novo' : '/prestador/servicos/novo' %>"><i class="fa fa-plus" aria-hidden="true"></i> Novo serviço</a><% } else if (!currentUser) { %><a class="btn btn-outline-secondary provider-invite" href="/anunciar"><i class="fa fa-arrow-right" aria-hidden="true"></i> Anunciar meus serviços</a><% } %>
+      </div>
     </div>
   </div>
 </section>
 
-<main class="app-main catalog-main">
+<main class="app-main catalog-main" id="buscar-servicos">
   <div class="catalog-tabs"><a class="active" href="<%= servicesUrl %>">Serviços</a><a href="<%= providersUrl %>">Prestadores</a></div>
   <%- include('partials/catalog-filters', { action: '/' }) %>
   <section class="catalog-layout">
@@ -30,4 +34,15 @@
     </div>
   </section>
 </main>
+<% if (!currentUser) { %>
+  <section class="provider-cta-band" aria-labelledby="provider-cta-title">
+    <div class="page-width provider-cta-content">
+      <div><p class="eyebrow">Para prestadores</p><h2 id="provider-cta-title">Anuncie seus serviços</h2></div>
+      <div class="provider-cta-actions">
+        <a class="btn btn-primary" href="/anunciar"><i class="fa fa-user-plus" aria-hidden="true"></i> Criar conta de prestador</a>
+        <a class="btn btn-outline-secondary" href="/entrar?perfil=prestador"><i class="fa fa-sign-in" aria-hidden="true"></i> Já tenho conta</a>
+      </div>
+    </div>
+  </section>
+<% } %>
 <%- include('partials/footer') %>

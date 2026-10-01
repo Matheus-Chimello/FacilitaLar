@@ -1,0 +1,19 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+<%- include('partials/flash') %>
+
+<main class="app-main narrow-main">
+  <section class="form-panel">
+    <div class="form-heading"><p class="eyebrow">Cadastro</p><h1>Confirme seu e-mail</h1></div>
+    <p>Enviamos um link de confirmação para <strong><%= email || 'o e-mail cadastrado' %></strong>.</p>
+    <% if (devUrl) { %><p class="form-note">Ambiente local: <a href="<%= devUrl %>">Abrir link de confirmação</a></p><% } %>
+    <form action="/reenviar-verificacao" method="post" class="verification-resend">
+      <%- include('partials/csrf') %>
+      <div class="form-group"><label for="verification-email">E-mail</label><input class="form-control" id="verification-email" name="email" type="email" value="<%= email %>" required></div>
+      <button class="btn btn-outline-primary" type="submit">Reenviar confirmação</button>
+    </form>
+    <p class="form-link"><a href="/entrar">Voltar para entrar</a></p>
+  </section>
+</main>
+
+<%- include('partials/footer') %>

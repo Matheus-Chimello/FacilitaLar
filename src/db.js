@@ -55,6 +55,7 @@ function initSchema() {
       name TEXT NOT NULL,
       email TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
+      email_verified_at TEXT,
       role TEXT NOT NULL CHECK (role IN ('admin', 'provider', 'customer')),
       phone TEXT,
       city TEXT,
@@ -156,6 +157,52 @@ function initSchema() {
       name TEXT PRIMARY KEY,
       applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      id TEXT PRIMARY KEY,
+      data TEXT NOT NULL,
+      expires_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS sessions_expiry ON sessions(expires_at);
+
+    CREATE TABLE IF NOT EXISTS login_failures (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ip TEXT NOT NULL,
+      email TEXT NOT NULL,
+      attempted_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS login_failures_ip_time ON login_failures(ip, attempted_at);
+    CREATE INDEX IF NOT EXISTS login_failures_account_time ON login_failures(ip, email, attempted_at);
+
+    CREATE TABLE IF NOT EXISTS email_verification_tokens (
+      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at INTEGER NOT NULL,
+      sent_at INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at INTEGER NOT NULL,
+      sent_at INTEGER NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS email_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ip TEXT NOT NULL,
+      sent_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS email_requests_ip_time ON email_requests(ip, sent_at);
+
+    CREATE TABLE IF NOT EXISTS oauth_identities (
+      provider TEXT NOT NULL CHECK (provider IN ('google', 'microsoft')),
+      issuer TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      PRIMARY KEY (provider, issuer, subject),
+      UNIQUE (provider, user_id)
+    );
   `);
 
   if (!all('PRAGMA table_info(service_requests)').some((column) => column.name === 'agreed_price')) {
@@ -168,9 +215,54 @@ function initSchema() {
     db.exec('ALTER TABLE services ADD COLUMN duration_minutes INTEGER NOT NULL DEFAULT 60');
   }
   const userColumns = all('PRAGMA table_info(users)');
+  if (!userColumns.some((column) => column.name === 'email_verified_at')) {
+    db.exec('ALTER TABLE users ADD COLUMN email_verified_at TEXT');
+    if (process.env.NODE_ENV !== 'production') db.exec('UPDATE users SET email_verified_at = CURRENT_TIMESTAMP');
+  }
   for (const [name, type] of [['latitude', 'REAL'], ['longitude', 'REAL'], ['postal_code', "TEXT NOT NULL DEFAULT ''"], ['location_address', "TEXT NOT NULL DEFAULT ''"]]) {
     if (!userColumns.some((column) => column.name === name)) db.exec(`ALTER TABLE users ADD COLUMN ${name} ${type}`);
   }
+}
+
+function seedMarketCategories() {
+  if (get('SELECT 1 FROM schema_migrations WHERE name = ?', ['market-categories-v1'])) return;
+  const categories = [
+    ['Limpeza residencial', 'Faxina, organização e limpeza recorrente.', 'fa-home'],
+    ['Hidráulica', 'Consertos, vazamentos e instalações hidráulicas.', 'fa-tint'],
+    ['Elétrica', 'Instalações, reparos e manutenção elétrica.', 'fa-bolt'],
+    ['Cuidados', 'Babysitter, cuidadores e acompanhamento familiar.', 'fa-heart'],
+    ['Jardinagem', 'Poda, manutenção e cuidado de áreas verdes.', 'fa-leaf'],
+    ['Piscina', 'Limpeza e manutenção de piscinas residenciais.', 'fa-life-ring'],
+    ['Montagem', 'Montagem e desmontagem de móveis.', 'fa-wrench'],
+    ['Ar-condicionado', 'Instalação, limpeza e manutenção de ar-condicionado.', 'fa-asterisk'],
+    ['Babás', 'Cuidados infantis em casa e acompanhamento por hora.', 'fa-child'],
+    ['Chaveiro', 'Abertura de portas, troca de fechaduras e cópia de chaves.', 'fa-key'],
+    ['Cuidados com idosos', 'Acompanhamento e apoio nas atividades do dia a dia.', 'fa-user-md'],
+    ['Cuidados com pets', 'Passeios, visitas e cuidados com animais de estimação.', 'fa-paw'],
+    ['Dedetização', 'Controle de pragas e prevenção em ambientes residenciais.', 'fa-bug'],
+    ['Eletrodomésticos', 'Instalação e reparo de aparelhos domésticos.', 'fa-plug'],
+    ['Gesso e drywall', 'Forros, divisórias e acabamentos em gesso.', 'fa-cubes'],
+    ['Impermeabilização', 'Proteção contra infiltrações e umidade.', 'fa-tint'],
+    ['Informática e redes', 'Configuração de computadores, internet e redes domésticas.', 'fa-laptop'],
+    ['Lavanderia e passadoria', 'Lavagem, cuidado e passagem de roupas.', 'fa-recycle'],
+    ['Limpeza pós-obra', 'Limpeza detalhada após obras e reformas.', 'fa-building'],
+    ['Manutenção geral', 'Pequenos reparos e manutenção da casa.', 'fa-wrench'],
+    ['Marcenaria', 'Móveis planejados, ajustes e reparos em madeira.', 'fa-tree'],
+    ['Mudanças e fretes', 'Transporte de móveis, mudanças e pequenos fretes.', 'fa-truck'],
+    ['Organização de ambientes', 'Organização de armários, cômodos e rotinas domésticas.', 'fa-cubes'],
+    ['Pintura', 'Pintura interna, externa e preparação de superfícies.', 'fa-paint-brush'],
+    ['Reformas e alvenaria', 'Construção, reparos estruturais e reformas.', 'fa-building'],
+    ['Segurança eletrônica', 'Instalação de câmeras, alarmes e controle de acesso.', 'fa-shield'],
+    ['Serralheria', 'Portões, grades e estruturas metálicas.', 'fa-wrench'],
+    ['Telhados e calhas', 'Reparo de telhados, limpeza e manutenção de calhas.', 'fa-home'],
+    ['Vidraçaria', 'Instalação e substituição de vidros e espelhos.', 'fa-building'],
+  ];
+  transaction(() => {
+    for (const category of categories) {
+      run('INSERT OR IGNORE INTO categories (name, description, icon) VALUES (?, ?, ?)', category);
+    }
+    run('INSERT INTO schema_migrations (name) VALUES (?)', ['market-categories-v1']);
+  });
 }
 
 function seedDatabase() {
@@ -189,23 +281,6 @@ function seedDatabase() {
         'Conta administrativa inicial do sistema.',
       ]
     );
-  }
-
-  const categoryCount = get('SELECT COUNT(*) AS count FROM categories').count;
-  if (categoryCount === 0) {
-    const categories = [
-      ['Limpeza residencial', 'Faxina, organização e limpeza recorrente.', 'fa-home'],
-      ['Hidráulica', 'Consertos, vazamentos e instalações hidráulicas.', 'fa-tint'],
-      ['Elétrica', 'Instalações, reparos e manutenção elétrica.', 'fa-bolt'],
-      ['Cuidados', 'Babysitter, cuidadores e acompanhamento familiar.', 'fa-heart'],
-      ['Jardinagem', 'Poda, manutenção e cuidado de áreas verdes.', 'fa-leaf'],
-      ['Piscina', 'Limpeza e manutenção de piscinas residenciais.', 'fa-life-ring'],
-      ['Montagem', 'Montagem e desmontagem de móveis.', 'fa-wrench'],
-    ];
-
-    categories.forEach((category) => {
-      run('INSERT INTO categories (name, description, icon) VALUES (?, ?, ?)', category);
-    });
   }
 
   const providerCount = get("SELECT COUNT(*) AS count FROM users WHERE role = 'provider'").count;
@@ -386,10 +461,45 @@ function seedDemoAvailability() {
   });
 }
 
+function verifyDemoAccounts() {
+  run(`UPDATE users SET email_verified_at = CURRENT_TIMESTAMP
+    WHERE email IN ('admin@facilitalar.com', 'ana@facilitalar.com', 'carlos@facilitalar.com', 'marina@facilitalar.com')
+      AND email_verified_at IS NULL`);
+}
+
+function bootstrapProductionAdmin() {
+  if (!get("SELECT id FROM users WHERE role = 'admin' LIMIT 1")) {
+    const email = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+    const password = String(process.env.ADMIN_PASSWORD || '');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 12) {
+      throw new Error('Para o primeiro acesso em produção, defina ADMIN_EMAIL e ADMIN_PASSWORD com pelo menos 12 caracteres.');
+    }
+    run("INSERT INTO users (name, email, password_hash, role, email_verified_at) VALUES (?, ?, ?, 'admin', CURRENT_TIMESTAMP)",
+      [String(process.env.ADMIN_NAME || 'Administrador').trim(), email, bcrypt.hashSync(password, 10)]);
+  }
+
+  for (const [email, password] of [
+    ['admin@facilitalar.com', 'admin123'],
+    ['ana@facilitalar.com', 'provider123'],
+    ['carlos@facilitalar.com', 'provider123'],
+    ['marina@facilitalar.com', 'provider123'],
+  ]) {
+    const user = get('SELECT password_hash FROM users WHERE email = ?', [email]);
+    if (user && bcrypt.compareSync(password, user.password_hash)) {
+      throw new Error(`A conta de demonstração ${email} ainda usa a senha padrão. Troque-a antes de iniciar em produção.`);
+    }
+  }
+}
+
 initSchema();
 migrateSeedAccents();
-seedDatabase();
-seedDemoAvailability();
+seedMarketCategories();
+if (process.env.NODE_ENV === 'production') bootstrapProductionAdmin();
+else {
+  seedDatabase();
+  seedDemoAvailability();
+  verifyDemoAccounts();
+}
 
 module.exports = {
   db,

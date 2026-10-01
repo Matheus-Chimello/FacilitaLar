@@ -6,9 +6,11 @@
   <section class="form-panel">
     <div class="form-heading">
       <p class="eyebrow">Cadastro</p>
-      <h1>Criar conta</h1>
+      <h1><%= providerEntry ? 'Criar conta de prestador' : 'Criar conta' %></h1>
     </div>
-    <form action="/cadastro" method="post">
+    <%- include('partials/oauth-options') %>
+    <form action="<%= providerEntry ? '/cadastro?perfil=prestador' : '/cadastro' %>" method="post">
+      <%- include('partials/csrf') %>
       <div class="form-group">
         <label for="role">Tipo de conta</label>
         <select class="form-control" id="role" name="role">
@@ -22,11 +24,11 @@
       </div>
       <div class="form-group">
         <label for="email">E-mail</label>
-        <input class="form-control" id="email" name="email" type="email" value="<%= form.email || '' %>" required>
+        <input class="form-control" id="email" name="email" type="email" maxlength="254" autocomplete="email" value="<%= form.email || '' %>" required>
       </div>
       <div class="form-group">
         <label for="password">Senha</label>
-        <input class="form-control" id="password" name="password" type="password" minlength="6" required>
+        <input class="form-control" id="password" name="password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required>
       </div>
       <div class="form-row">
         <div class="form-group col-md-6">
@@ -44,7 +46,7 @@
       </div>
       <button class="btn btn-primary btn-block" type="submit">Cadastrar</button>
     </form>
-    <p class="form-link">Já tem conta? <a href="/entrar">Entrar</a></p>
+    <p class="form-link">Já tem conta? <a href="<%= providerEntry ? '/entrar?perfil=prestador' : '/entrar' %>">Entrar</a></p>
   </section>
 </main>
 

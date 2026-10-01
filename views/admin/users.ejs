@@ -35,6 +35,7 @@
               <td class="text-right">
                 <% if (currentUser.id !== user.id) { %>
                   <form action="/admin/usuarios/<%= user.id %>/status" method="post">
+                    <%- include('../partials/csrf') %>
                     <button class="btn btn-sm btn-outline-primary" type="submit"><%= user.active ? 'Desativar' : 'Ativar' %></button>
                   </form>
                 <% } %>

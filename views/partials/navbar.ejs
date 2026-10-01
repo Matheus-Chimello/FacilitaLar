@@ -33,10 +33,12 @@
             </li>
             <li class="nav-item">
               <form action="/sair" method="post" class="mb-0">
+                <%- include('csrf') %>
                 <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="fa fa-sign-out" aria-hidden="true"></i> Sair</button>
               </form>
             </li>
           <% } else { %>
+            <li class="nav-item"><a class="nav-link <%= active('/anunciar') ? 'active' : '' %>" href="/anunciar">Anunciar serviços</a></li>
             <li class="nav-item">
               <a class="btn btn-sm btn-outline-secondary mr-lg-2" href="/entrar">Entrar</a>
             </li>

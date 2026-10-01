@@ -9,6 +9,8 @@ Aplicação web para contratação e gestão de serviços domésticos.
 - EJS
 - SQLite nativo do Node
 - Bootstrap
+- OpenID Connect (Google e Microsoft, quando configurados)
+- SMTP para confirmação de e-mail
 
 ## Como rodar
 
@@ -23,7 +25,9 @@ Acesse:
 http://localhost:3000
 ```
 
-## Contas iniciais
+Para testar integrações locais, copie `.env.example` para `.env` e configure as variáveis necessárias. O arquivo `.env` não é enviado ao Git. O passo a passo para criar as credenciais está em [docs/CREDENCIAIS.md](docs/CREDENCIAIS.md).
+
+## Contas de demonstração (somente desenvolvimento)
 
 Administrador:
 
@@ -40,11 +44,17 @@ provider123
 ```
 
 Também é possível criar novas contas como contratante ou prestador em `/cadastro`.
+Novas contas criadas por e-mail e senha só podem entrar após confirmar o link de verificação. Sem SMTP, o link aparece na página de confirmação apenas em desenvolvimento.
 
 ## Funcionalidades
 
 - Catálogo público de serviços com busca e filtro por categoria.
+- Categorias comuns do mercado já cadastradas, sem sobrescrever as personalizações do administrador.
 - Cadastro e login de usuários.
+- Entrada com Google ou Microsoft quando as credenciais OpenID Connect estão configuradas.
+- Confirmação de e-mail antes do primeiro acesso por senha e limitação de tentativas de login.
+- Recuperação de senha por link temporário, que encerra as sessões antigas.
+- Convite para prestadores em `/anunciar`, com acesso ao cadastro e ao login.
 - Perfis de administrador, prestador e contratante.
 - Contratante pode solicitar serviços e acompanhar status.
 - Prestador pode cadastrar, editar, pausar e ativar serviços.
@@ -102,3 +112,21 @@ As tabelas principais são:
 - `request_quotes`
 - `provider_hours`
 - `provider_days_off`
+- `sessions`
+- `login_failures`
+- `email_verification_tokens`
+- `password_reset_tokens`
+- `email_requests`
+- `oauth_identities`
+
+## Preparação para publicação
+
+Use Node.js 24 ou superior e um domínio com HTTPS. Em produção (`NODE_ENV=production`), a aplicação exige `SESSION_SECRET` com pelo menos 32 caracteres, `APP_BASE_URL` com a origem HTTPS, `SMTP_HOST` e `SMTP_FROM`. Gere um segredo aleatório com `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"` e guarde-o apenas nas variáveis do servidor. Configure `TRUST_PROXY=1` somente se houver exatamente um proxy reverso confiável terminando o HTTPS.
+
+Em um banco de produção novo, configure `ADMIN_EMAIL` e `ADMIN_PASSWORD` (mínimo de 12 caracteres) para criar o primeiro administrador. A produção não cria prestadores ou serviços de demonstração e recusa iniciar se contas demo existentes ainda usarem as senhas padrão. Faça backup do SQLite e não reutilize o banco local de testes sem revisar as contas.
+
+Para ativar o login Google, crie um cliente OAuth de aplicação web e configure `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`. Cadastre exatamente `https://SEU-DOMINIO/auth/google/callback` como URI de redirecionamento (ou `http://localhost:3000/auth/google/callback` para teste local).
+
+Para ativar o login Microsoft, registre uma aplicação web e configure `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET` e `MICROSOFT_TENANT_ID` (`consumers` para contas pessoais). Cadastre `https://SEU-DOMINIO/auth/microsoft/callback` (ou `http://localhost:3000/auth/microsoft/callback` localmente). Os botões só aparecem quando cada par de credenciais está completo. Contas locais existentes não são vinculadas automaticamente por igualdade de e-mail.
+
+Configure também `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD` e `SMTP_FROM` conforme o provedor de e-mail. Em desenvolvimento sem SMTP, o link de confirmação aparece somente para quem fez o cadastro naquela sessão. Em produção, ele é enviado apenas por e-mail.

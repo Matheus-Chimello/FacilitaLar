@@ -38,7 +38,7 @@
               <td><span class="badge badge-<%= statusClass(request.status) %>"><%= statusLabel(request.status) %></span></td>
               <td><a class="btn btn-sm btn-outline-primary" href="/solicitacoes/<%= request.id %>/conversa"><i class="fa fa-comments-o" aria-hidden="true"></i> Consultar</a></td>
               <td>
-                <% if (nextStatuses[request.status].length) { %><form action="/admin/solicitacoes/<%= request.id %>/status" method="post" class="inline-status-form">
+                <% if (nextStatuses[request.status].length) { %><form action="/admin/solicitacoes/<%= request.id %>/status" method="post" class="inline-status-form"><%- include('../partials/csrf') %>
                   <select class="form-control form-control-sm" name="status">
                     <option value="">Alterar status</option>
                     <% nextStatuses[request.status].forEach((status) => { %>

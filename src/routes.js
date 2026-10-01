@@ -1,16 +1,20 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const validator = require('validator');
 
 const { all, get, run, imageOptions, transaction } = require('./db');
 const { dashboardPath, requireRole, setFlash } = require('./auth');
+const { loginIsLimited, recordLoginFailure, clearLoginFailures, emailRequestAllowed, recordEmailRequest } = require('./security');
 const { coordinates, radiusOptions, locationFilter, nearbyServices } = require('./location');
 const { CepError, formatCep, lookupCep } = require('./cep');
+const { issueVerification, verifyEmail, issuePasswordReset, resetTokenUser, resetPassword } = require('./email-verification');
 const {
   weekdays, durationOptions, bookingWindowDays, localNow, dateNumber, withinWindow,
   availabilityFromBody, availableSlots, nextAvailableDate, canConfirm,
 } = require('./scheduling');
 
 const router = express.Router();
+const dummyPasswordHash = bcrypt.hashSync('unregistered-account', 10);
 const nextStatuses = {
   pending: ['accepted', 'canceled'],
   accepted: ['in_progress', 'canceled'],
@@ -158,12 +162,6 @@ router.get('/', async (req, res) => {
   const filters = await catalogFilters(req);
   const categories = activeCategories();
   const services = filters.locationError ? [] : serviceQuery(filters);
-  const stats = {
-    services: get('SELECT COUNT(*) AS count FROM services WHERE active = 1').count,
-    providers: get("SELECT COUNT(*) AS count FROM users WHERE role = 'provider' AND active = 1").count,
-    requests: get("SELECT COUNT(*) AS count FROM service_requests WHERE status != 'canceled'").count,
-  };
-
   res.status(filters.locationError ? filters.locationErrorStatus : 200).render('home', {
     title: 'Serviços',
     services,
@@ -173,7 +171,6 @@ router.get('/', async (req, res) => {
     selectedProvider: filters.providerId ? get("SELECT name FROM users WHERE id = ? AND role = 'provider'", [filters.providerId]) : null,
     servicesUrl: catalogUrl(filters),
     providersUrl: catalogUrl(filters, { prestador: null }, '/prestadores'),
-    stats,
   });
 });
 
@@ -232,32 +229,54 @@ router.get('/servicos/:id/horarios', (req, res) => {
 
 router.get('/entrar', (req, res) => {
   if (req.user) return res.redirect(dashboardPath(req.user.role));
-  return renderWithForm(res, 'login', { title: 'Entrar' });
+  const providerEntry = req.query.perfil === 'prestador';
+  return renderWithForm(res, 'login', { title: 'Entrar', providerEntry });
 });
 
-router.post('/entrar', (req, res) => {
+router.post('/entrar', (req, res, next) => {
   const email = normalizeEmail(req.body.email);
-  const user = get('SELECT * FROM users WHERE email = ?', [email]);
+  const password = typeof req.body.password === 'string' ? req.body.password : '';
+  const providerEntry = req.query.perfil === 'prestador';
+  const ip = req.ip || 'unknown';
+  if (loginIsLimited(ip, email)) {
+    setFlash(req, 'danger', 'Muitas tentativas de acesso. Aguarde alguns minutos antes de tentar novamente.');
+    return res.status(429).render('login', { title: 'Entrar', form: { email }, providerEntry });
+  }
+  const user = email.length <= 254 && validator.isEmail(email, { allow_utf8_local_part: false })
+    ? get('SELECT * FROM users WHERE email = ?', [email]) : null;
+  const passwordMatches = bcrypt.compareSync(password, user?.password_hash || dummyPasswordHash);
 
-  if (!user || !user.active || !bcrypt.compareSync(req.body.password || '', user.password_hash)) {
+  if (!user || !user.active || password.length > 128 || !passwordMatches) {
+    recordLoginFailure(ip, email);
     setFlash(req, 'danger', 'E-mail ou senha inválidos.');
     return res.status(401).render('login', {
       title: 'Entrar',
       form: { email },
+      providerEntry,
     });
   }
 
-  req.session.userId = user.id;
-  setFlash(req, 'success', `Olá, ${user.name}.`);
-  return res.redirect(dashboardPath(user.role));
+  clearLoginFailures(ip, email);
+  if (!user.email_verified_at) {
+    setFlash(req, 'warning', 'Confirme seu e-mail antes de entrar.');
+    return res.redirect(`/verificacao-pendente?email=${encodeURIComponent(email)}`);
+  }
+  return req.session.regenerate((error) => {
+    if (error) return next(error);
+    req.session.userId = user.id;
+    setFlash(req, 'success', `Olá, ${user.name}.`);
+    return res.redirect(dashboardPath(user.role));
+  });
 });
 
-router.get('/cadastro', (req, res) => {
+router.get(['/cadastro', '/anunciar'], (req, res) => {
   if (req.user) return res.redirect(dashboardPath(req.user.role));
-  return renderWithForm(res, 'register', { title: 'Cadastro', form: { role: req.query.perfil === 'prestador' ? 'provider' : 'customer' } });
+  const providerEntry = req.path === '/anunciar' || req.query.perfil === 'prestador';
+  return renderWithForm(res, 'register', { title: 'Cadastro', providerEntry, form: { role: providerEntry ? 'provider' : 'customer' } });
 });
 
-router.post('/cadastro', (req, res) => {
+router.post('/cadastro', async (req, res) => {
+  const providerEntry = req.query.perfil === 'prestador';
   const name = String(req.body.name || '').trim();
   const email = normalizeEmail(req.body.email);
   const password = String(req.body.password || '');
@@ -268,15 +287,19 @@ router.post('/cadastro', (req, res) => {
 
   const form = { name, email, role, phone, city, bio };
 
-  if (!name || !email || password.length < 6) {
-    setFlash(req, 'danger', 'Informe nome, e-mail e uma senha com pelo menos 6 caracteres.');
-    return res.status(422).render('register', { title: 'Cadastro', form });
+  if (!name || name.length > 120 || email.length > 254 || !validator.isEmail(email, { allow_utf8_local_part: false }) || password.length < 12 || password.length > 128) {
+    setFlash(req, 'danger', 'Informe nome, e-mail válido e uma senha entre 12 e 128 caracteres.');
+    return res.status(422).render('register', { title: 'Cadastro', form, providerEntry });
+  }
+  if (!emailRequestAllowed(req.ip || 'unknown')) {
+    setFlash(req, 'warning', 'Muitos cadastros foram solicitados. Tente novamente mais tarde.');
+    return res.status(429).render('register', { title: 'Cadastro', form, providerEntry });
   }
 
-  const existing = get('SELECT id FROM users WHERE email = ?', [email]);
+  const existing = get('SELECT id, email_verified_at FROM users WHERE email = ?', [email]);
   if (existing) {
-    setFlash(req, 'danger', 'Já existe uma conta com este e-mail.');
-    return res.status(409).render('register', { title: 'Cadastro', form });
+    setFlash(req, 'warning', 'Se esta conta ainda não foi confirmada, solicite um novo link de verificação.');
+    return res.redirect(`/verificacao-pendente?email=${encodeURIComponent(email)}`);
   }
 
   const result = run(
@@ -285,14 +308,121 @@ router.post('/cadastro', (req, res) => {
     [name, email, bcrypt.hashSync(password, 10), role, phone, city, bio]
   );
 
-  req.session.userId = result.lastInsertRowid;
-  setFlash(req, 'success', 'Cadastro criado com sucesso.');
-  return res.redirect(dashboardPath(role));
+  recordEmailRequest(req.ip || 'unknown');
+  try {
+    const devUrl = await issueVerification(result.lastInsertRowid, email, req.app.locals.sendVerificationEmail);
+    if (devUrl) req.session.devVerification = { email, url: devUrl };
+    setFlash(req, 'success', 'Cadastro recebido. Confirme seu e-mail para acessar a conta.');
+  } catch (error) {
+    console.error('Falha ao enviar confirmação de e-mail:', error);
+    setFlash(req, 'warning', 'A conta foi criada, mas não foi possível enviar o link. Tente reenviá-lo em instantes.');
+  }
+  return res.redirect(`/verificacao-pendente?email=${encodeURIComponent(email)}`);
 });
 
-router.post('/sair', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/');
+router.get('/verificacao-pendente', (req, res) => {
+  const email = normalizeEmail(req.query.email);
+  const devUrl = !res.locals.isProduction && req.session.devVerification?.email === email
+    ? req.session.devVerification.url : null;
+  res.render('verification-pending', { title: 'Confirme seu e-mail', email, devUrl });
+});
+
+router.post('/reenviar-verificacao', async (req, res) => {
+  const email = normalizeEmail(req.body.email);
+  const ip = req.ip || 'unknown';
+  if (!emailRequestAllowed(ip)) {
+    setFlash(req, 'warning', 'Muitas solicitações de e-mail. Tente novamente mais tarde.');
+    return res.redirect(`/verificacao-pendente?email=${encodeURIComponent(email)}`);
+  }
+  recordEmailRequest(ip);
+  const user = validator.isEmail(email, { allow_utf8_local_part: false })
+    ? get('SELECT id, email_verified_at FROM users WHERE email = ?', [email]) : null;
+  const last = user && get('SELECT sent_at FROM email_verification_tokens WHERE user_id = ?', [user.id]);
+  if (user && !user.email_verified_at && (!last || last.sent_at <= Date.now() - 60_000)) {
+    try {
+      const devUrl = await issueVerification(user.id, email, req.app.locals.sendVerificationEmail);
+      if (devUrl) req.session.devVerification = { email, url: devUrl };
+    } catch (error) {
+      console.error('Falha ao reenviar confirmação de e-mail:', error);
+    }
+  }
+  setFlash(req, 'success', 'Se houver uma conta pendente para este e-mail, o link de confirmação será enviado.');
+  return res.redirect(`/verificacao-pendente?email=${encodeURIComponent(email)}`);
+});
+
+router.get('/verificar-email', (req, res) => {
+  res.set('Referrer-Policy', 'no-referrer');
+  if (!verifyEmail(req.query.token)) {
+    setFlash(req, 'warning', 'Este link é inválido ou expirou. Solicite um novo.');
+    return res.redirect('/verificacao-pendente');
+  }
+  delete req.session.devVerification;
+  setFlash(req, 'success', 'E-mail confirmado. Agora você pode entrar.');
+  return res.redirect('/entrar');
+});
+
+router.get('/esqueci-senha', (req, res) => {
+  const email = normalizeEmail(req.query.email);
+  const devUrl = !res.locals.isProduction && req.session.devReset?.email === email ? req.session.devReset.url : null;
+  return res.render('forgot-password', { title: 'Redefinir senha', email, devUrl });
+});
+
+router.post('/esqueci-senha', async (req, res) => {
+  const email = normalizeEmail(req.body.email);
+  const ip = req.ip || 'unknown';
+  if (!emailRequestAllowed(ip)) {
+    setFlash(req, 'warning', 'Muitas solicitações de e-mail. Tente novamente mais tarde.');
+    return res.redirect('/esqueci-senha');
+  }
+  recordEmailRequest(ip);
+  const user = validator.isEmail(email, { allow_utf8_local_part: false })
+    ? get('SELECT id, email_verified_at FROM users WHERE email = ?', [email]) : null;
+  const last = user && get('SELECT sent_at FROM password_reset_tokens WHERE user_id = ?', [user.id]);
+  if (user?.email_verified_at && (!last || last.sent_at <= Date.now() - 60_000)) {
+    try {
+      const devUrl = await issuePasswordReset(user.id, email, req.app.locals.sendPasswordResetEmail);
+      if (devUrl) req.session.devReset = { email, url: devUrl };
+    } catch (error) {
+      console.error('Falha ao enviar redefinição de senha:', error);
+    }
+  }
+  setFlash(req, 'success', 'Se houver uma conta confirmada com este e-mail, enviaremos um link de redefinição.');
+  return res.redirect(`/esqueci-senha?email=${encodeURIComponent(email)}`);
+});
+
+router.get('/redefinir-senha', (req, res) => {
+  res.set('Referrer-Policy', 'no-referrer');
+  const token = String(req.query.token || '');
+  if (!resetTokenUser(token)) {
+    setFlash(req, 'warning', 'Este link é inválido ou expirou. Solicite um novo.');
+    return res.redirect('/esqueci-senha');
+  }
+  return res.render('reset-password', { title: 'Nova senha', token });
+});
+
+router.post('/redefinir-senha', (req, res, next) => {
+  const token = String(req.body.token || '');
+  const password = String(req.body.password || '');
+  if (password.length < 12 || password.length > 128 || password !== req.body.confirm_password) {
+    setFlash(req, 'danger', 'Use uma senha entre 12 e 128 caracteres e confirme-a corretamente.');
+    return res.status(422).render('reset-password', { title: 'Nova senha', token });
+  }
+  if (!resetPassword(token, password)) {
+    setFlash(req, 'warning', 'Este link é inválido ou expirou. Solicite um novo.');
+    return res.redirect('/esqueci-senha');
+  }
+  return req.session.regenerate((error) => {
+    if (error) return next(error);
+    setFlash(req, 'success', 'Senha atualizada. Entre novamente com a nova senha.');
+    return res.redirect('/entrar');
+  });
+});
+
+router.post('/sair', (req, res, next) => {
+  req.session.destroy((error) => {
+    if (error) return next(error);
+    res.clearCookie('facilitalar.sid');
+    return res.redirect('/');
   });
 });
 

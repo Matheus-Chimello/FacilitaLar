@@ -5,6 +5,7 @@
   <section class="form-panel location-panel">
     <div class="form-heading"><p class="eyebrow">Prestador</p><h1>Minha localização</h1></div>
     <form action="/prestador/localizacao" method="post" id="provider-location">
+      <%- include('../partials/csrf') %>
       <div class="location-preview">
         <i class="fa fa-map-marker" aria-hidden="true"></i>
         <div>
@@ -25,7 +26,7 @@
       <input type="hidden" name="longitude" value="<%= form === currentUser ? '' : form.longitude || '' %>">
       <div class="button-row"><a class="btn btn-outline-secondary" href="/prestador">Voltar</a><button class="btn btn-primary" type="submit"><i class="fa fa-check" aria-hidden="true"></i> Salvar localização</button></div>
     </form>
-    <% if (currentUser.latitude !== null && currentUser.longitude !== null) { %><form action="/prestador/localizacao/remover" method="post" class="remove-location"><button class="btn btn-link text-danger" type="submit">Remover localização cadastrada</button></form><% } %>
+    <% if (currentUser.latitude !== null && currentUser.longitude !== null) { %><form action="/prestador/localizacao/remover" method="post" class="remove-location"><%- include('../partials/csrf') %><button class="btn btn-link text-danger" type="submit">Remover localização cadastrada</button></form><% } %>
   </section>
 </main>
 <%- include('../partials/footer') %>

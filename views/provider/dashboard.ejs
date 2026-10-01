@@ -55,6 +55,7 @@
             <div class="button-row">
               <a class="btn btn-sm btn-outline-secondary" href="/prestador/servicos/<%= service.id %>/editar">Editar</a>
               <form action="/prestador/servicos/<%= service.id %>/status" method="post">
+                <%- include('../partials/csrf') %>
                 <button class="btn btn-sm btn-outline-primary" type="submit"><%= service.active ? 'Pausar' : 'Ativar' %></button>
               </form>
             </div>
@@ -103,14 +104,14 @@
                 <td>
                   <div class="request-actions">
                     <% if (request.status === 'pending') { %>
-                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><button class="btn btn-sm btn-primary" type="submit" name="status" value="accepted"><i class="fa fa-check" aria-hidden="true"></i> Confirmar</button></form>
-                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><button class="btn btn-sm btn-outline-danger" type="submit" name="status" value="canceled">Recusar</button></form>
+                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><%- include('../partials/csrf') %><button class="btn btn-sm btn-primary" type="submit" name="status" value="accepted"><i class="fa fa-check" aria-hidden="true"></i> Confirmar</button></form>
+                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><%- include('../partials/csrf') %><button class="btn btn-sm btn-outline-danger" type="submit" name="status" value="canceled">Recusar</button></form>
                     <% } else if (request.status === 'accepted') { %>
-                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><button class="btn btn-sm btn-outline-primary" type="submit" name="status" value="in_progress">Iniciar</button></form>
-                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><button class="btn btn-sm btn-outline-danger" type="submit" name="status" value="canceled">Cancelar</button></form>
+                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><%- include('../partials/csrf') %><button class="btn btn-sm btn-outline-primary" type="submit" name="status" value="in_progress">Iniciar</button></form>
+                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><%- include('../partials/csrf') %><button class="btn btn-sm btn-outline-danger" type="submit" name="status" value="canceled">Cancelar</button></form>
                     <% } else if (request.status === 'in_progress') { %>
-                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><button class="btn btn-sm btn-outline-primary" type="submit" name="status" value="completed">Concluir</button></form>
-                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><button class="btn btn-sm btn-outline-danger" type="submit" name="status" value="canceled">Cancelar</button></form>
+                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><%- include('../partials/csrf') %><button class="btn btn-sm btn-outline-primary" type="submit" name="status" value="completed">Concluir</button></form>
+                      <form action="/prestador/solicitacoes/<%= request.id %>/status" method="post"><%- include('../partials/csrf') %><button class="btn btn-sm btn-outline-danger" type="submit" name="status" value="canceled">Cancelar</button></form>
                     <% } %>
                   </div>
                 </td>
