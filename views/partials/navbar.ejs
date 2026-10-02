@@ -1,14 +1,28 @@
 <% const active = (target) => path === target || (target !== '/' && path.startsWith(target)); %>
 <header class="app-header">
-  <nav class="navbar navbar-expand-lg navbar-light app-navbar">
+  <nav class="navbar navbar-expand-lg navbar-light app-navbar <%= currentUser ? 'has-account' : '' %>">
     <div class="container-fluid">
       <a class="navbar-brand" href="/" aria-label="Facilita Lar, página inicial">
         <span class="brand-logo"><img src="/assets/images/logo%203%20p%202.png" alt="" width="2560" height="1707"></span>
         <span class="brand-wordmark">Facilita <strong>Lar</strong><small>Sua casa, nossa prioridade</small></span>
       </a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Abrir menu">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+      <div class="navbar-tools">
+        <% if (currentUser) { %>
+          <div class="notification-bell" id="notification-bell" data-revision="<%= notificationSummary.revision %>">
+            <a href="/notificacoes" id="notification-toggle" class="notification-icon-button" aria-label="Notificações, <%= notificationSummary.unreadCount %> não <%= notificationSummary.unreadCount === 1 ? 'lida' : 'lidas' %>" aria-expanded="false" aria-controls="notification-popover" title="Notificações">
+              <i class="fa fa-bell-o" aria-hidden="true"></i>
+              <span class="notification-badge" id="notification-badge" <%= notificationSummary.unreadCount ? '' : 'hidden' %>><%= notificationSummary.unreadCount > 99 ? '99+' : notificationSummary.unreadCount %></span>
+            </a>
+            <section id="notification-popover" class="notification-popover" aria-label="Últimas notificações" hidden>
+              <div id="notification-preview"><%- include('../notifications/preview') %></div>
+              <p id="notification-error" class="notification-error" role="status" hidden></p>
+            </section>
+          </div>
+        <% } %>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Abrir menu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      </div>
       <div class="collapse navbar-collapse" id="mainNav">
         <ul class="navbar-nav ml-auto align-items-lg-center">
           <li class="nav-item">

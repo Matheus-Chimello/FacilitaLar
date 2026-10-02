@@ -1,0 +1,16 @@
+<div class="notification-popover-heading">
+  <div><strong>Notificações</strong><span><%= notificationSummary.unreadCount %> não <%= notificationSummary.unreadCount === 1 ? 'lida' : 'lidas' %></span></div>
+  <form action="/notificacoes/ler-todas" method="post" data-notification-action>
+    <%- include('../partials/csrf') %>
+    <button class="notification-icon-button" type="submit" title="Marcar todas como lidas" aria-label="Marcar todas como lidas" <%= notificationSummary.unreadCount ? '' : 'disabled' %>><i class="fa fa-check-square-o" aria-hidden="true"></i></button>
+  </form>
+</div>
+<ul class="notification-preview-list">
+  <% notificationSummary.items.forEach((notification) => { %>
+    <li><%- include('row', { notification, compact: true }) %></li>
+  <% }); %>
+</ul>
+<% if (!notificationSummary.items.length) { %>
+  <div class="notification-preview-empty"><i class="fa fa-bell-o" aria-hidden="true"></i><p>Nenhuma notificação por enquanto.</p></div>
+<% } %>
+<a class="notification-view-all" href="/notificacoes">Ver todas <i class="fa fa-arrow-right" aria-hidden="true"></i></a>

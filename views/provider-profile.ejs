@@ -1,0 +1,24 @@
+<%- include('partials/head') %>
+<%- include('partials/navbar') %>
+<%- include('partials/flash') %>
+<main class="app-main provider-profile-main">
+  <a class="notifications-back" href="/prestadores"><i class="fa fa-arrow-left" aria-hidden="true"></i> Prestadores</a>
+  <header class="provider-profile-heading">
+    <span class="provider-avatar profile-avatar"><%= provider.name.split(' ').slice(0, 2).map((name) => name[0]).join('') %></span>
+    <div><p class="eyebrow">Prestador de serviços</p><h1><%= provider.name %></h1><p class="profile-city"><i class="fa fa-map-marker" aria-hidden="true"></i> <%= provider.city || 'Região não informada' %></p><%- include('reviews/rating-summary', { average: summary.average, count: summary.count, href: '#avaliacoes' }) %></div>
+  </header>
+  <% if (provider.bio) { %><p class="provider-profile-bio"><%= provider.bio %></p><% } %>
+  <nav class="catalog-tabs profile-section-nav" aria-label="Seções do perfil"><a href="#servicos">Serviços</a><a href="#avaliacoes">Avaliações (<%= summary.count %>)</a></nav>
+  <section class="profile-section" id="servicos">
+    <div class="section-title-row"><h2>Serviços disponíveis</h2><span class="result-count"><%= services.length %> <%= services.length === 1 ? 'serviço' : 'serviços' %></span></div>
+    <div class="service-grid"><% services.forEach((service) => { %><%- include('partials/service-card', { service }) %><% }); %></div>
+    <% if (!services.length) { %><p class="reviews-empty">Nenhum serviço disponível no momento.</p><% } %>
+  </section>
+  <section class="profile-section" id="avaliacoes">
+    <div class="section-title-row"><h2>Avaliações dos clientes</h2><%- include('reviews/rating-summary', { average: summary.average, count: summary.count, href: null }) %></div>
+    <div class="review-list"><% reviews.forEach((review) => { %><%- include('reviews/item', { review }) %><% }); %></div>
+    <% if (!reviews.length) { %><p class="reviews-empty">Este prestador ainda não recebeu avaliações.</p><% } %>
+    <%- include('reviews/pagination', { pageUrl: (value) => `/prestadores/${provider.id}?pagina=${value}#avaliacoes` }) %>
+  </section>
+</main>
+<%- include('partials/footer') %>

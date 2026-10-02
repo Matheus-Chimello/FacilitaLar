@@ -1,0 +1,11 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+<main class="app-main reviews-main">
+  <a class="notifications-back" href="/prestador"><i class="fa fa-arrow-left" aria-hidden="true"></i> Painel</a>
+  <div class="dashboard-head"><div><p class="eyebrow">Prestador</p><h1>Minhas avaliações</h1><%- include('rating-summary', { average: summary.average, count: summary.count, href: null }) %></div><a class="btn btn-outline-secondary" href="/prestadores/<%= currentUser.id %>#avaliacoes">Ver perfil público <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div>
+  <div class="review-list"><% reviews.forEach((review) => { %><%- include('item', { review }) %><% }); %></div>
+  <% if (!reviews.length) { %><div class="notification-empty"><i class="fa fa-star-o" aria-hidden="true"></i><h2>Nenhuma avaliação ainda</h2></div><% } %>
+  <%- include('pagination', { pageUrl: (value) => `/prestador/avaliacoes?pagina=${value}` }) %>
+</main>
+<%- include('../partials/footer') %>

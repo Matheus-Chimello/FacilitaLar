@@ -1,0 +1,30 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+<main class="app-main reviews-main review-request-main">
+  <a class="notifications-back" href="<%= backPath %>"><i class="fa fa-arrow-left" aria-hidden="true"></i> Painel</a>
+  <div class="dashboard-head"><div><p class="eyebrow">Atendimento #<%= request.id %></p><h1><%= review ? 'Avaliação do atendimento' : 'Como foi o atendimento?' %></h1><p class="page-subtitle"><%= request.service_title %> · <%= request.provider_name %></p></div><a class="btn btn-sm btn-outline-secondary" href="/solicitacoes/<%= request.id %>/conversa"><i class="fa fa-comments-o" aria-hidden="true"></i> Ver conversa</a></div>
+  <% if (error) { %><p class="alert alert-warning" role="alert"><%= error %></p><% } %>
+  <% if (review) { %>
+    <%- include('item', { review }) %>
+    <% if (currentUser.id === request.provider_id && !review.response) { %>
+      <form action="/solicitacoes/<%= request.id %>/avaliacao/resposta" method="post" class="review-form" id="resposta">
+        <%- include('../partials/csrf') %><h2>Sua resposta</h2><label for="review-response">Resposta ao cliente</label><textarea class="form-control" id="review-response" name="response" rows="4" maxlength="1500" required autocapitalize="sentences"><%= form.response || '' %></textarea><button class="btn btn-primary" type="submit"><i class="fa fa-reply" aria-hidden="true"></i> Publicar resposta</button>
+      </form>
+    <% } %>
+    <% if (history.length) { %><details class="review-moderation-history"><summary><i class="fa fa-shield" aria-hidden="true"></i> Histórico de moderação</summary><% history.forEach((entry) => { %><p><strong><%= entry.target === 'comment' ? `Comentário ${entry.action === 'hide' ? 'ocultado' : 'restaurado'}` : `Resposta ${entry.action === 'hide' ? 'ocultada' : 'restaurada'}` %></strong><span><%= moderationReasons[entry.reason] %></span><time><%= reviewDate(entry.created_at) %></time></p><% }); %></details><% } %>
+  <% } else if (request.status !== 'completed') { %>
+    <p class="review-unavailable"><i class="fa fa-clock-o" aria-hidden="true"></i> A avaliação fica disponível após a conclusão do atendimento.</p>
+  <% } else if (currentUser.id === request.customer_id) { %>
+    <form action="/solicitacoes/<%= request.id %>/avaliacao" method="post" class="review-form" id="review-form">
+      <%- include('../partials/csrf') %>
+      <fieldset class="review-rating-input"><legend>Sua nota</legend><div class="review-rating-options">
+        <% for (let value = 1; value <= 5; value++) { %><label class="review-rating-choice" title="<%= value %> <%= value === 1 ? 'estrela' : 'estrelas' %>"><input class="sr-only" type="radio" name="rating" value="<%= value %>" <%= Number(form.rating) === value ? 'checked' : '' %> required><span><i class="fa fa-star-o" aria-hidden="true"></i></span><span class="sr-only"><%= value %> <%= value === 1 ? 'estrela' : 'estrelas' %></span></label><% } %>
+      </div><output class="review-rating-label" aria-live="polite"><%= /^[1-5]$/.test(form.rating || '') ? `${form.rating} de 5 estrelas` : 'Nota não selecionada' %></output></fieldset>
+      <label for="review-comment">Seu comentário <span class="text-muted">(opcional)</span></label><textarea class="form-control" id="review-comment" name="comment" rows="5" maxlength="1500" autocapitalize="sentences"><%= form.comment || '' %></textarea>
+      <button class="btn btn-primary" type="submit"><i class="fa fa-star" aria-hidden="true"></i> Publicar avaliação</button>
+    </form>
+  <% } else { %><p class="reviews-empty">O cliente ainda não avaliou este atendimento.</p><% } %>
+</main>
+<script src="/public/js/reviews.js" defer></script>
+<%- include('../partials/footer') %>

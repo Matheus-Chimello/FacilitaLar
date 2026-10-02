@@ -1,0 +1,4 @@
+<% if (href) { %><a class="rating-summary <%= count ? '' : 'rating-empty' %>" href="<%= href %>"><% } else { %><span class="rating-summary <%= count ? '' : 'rating-empty' %>"><% } %>
+  <i class="fa <%= count ? 'fa-star' : 'fa-star-o' %>" aria-hidden="true"></i>
+  <% if (count) { %><strong><%= formatRating(average) %><span class="sr-only"> de 5</span></strong><span><%= count %> <%= count === 1 ? 'avaliação' : 'avaliações' %></span><% } else { %><span>Sem avaliações</span><% } %>
+<% if (href) { %></a><% } else { %></span><% } %>

@@ -1,0 +1,24 @@
+<article class="notification-row <%= notification.read_at === null ? 'is-unread' : '' %> <%= compact ? 'is-compact' : '' %>">
+  <form action="/notificacoes/<%= notification.id %>/abrir" method="post" class="notification-open-form">
+    <%- include('../partials/csrf') %>
+    <input type="hidden" name="version" value="<%= notification.version %>">
+    <button class="notification-open" type="submit" aria-label="<%= notification.title %>. Abrir atendimento">
+      <span class="notification-event-icon notification-kind-<%= notification.kind %>"><i class="fa <%= notificationIcon(notification.kind) %>" aria-hidden="true"></i></span>
+      <span class="notification-copy">
+        <strong><%= notification.title %></strong>
+        <span class="notification-body"><%= notification.body %></span>
+        <time datetime="<%= new Date(notification.updated_at).toISOString() %>" title="<%= notificationDate(notification.updated_at) %>"><%= notificationAge(notification.updated_at) %></time>
+      </span>
+      <% if (notification.read_at === null) { %><span class="notification-unread-dot"><span class="sr-only">Não lida</span></span><% } %>
+    </button>
+  </form>
+  <% if (!compact && notification.read_at === null) { %>
+    <form action="/notificacoes/<%= notification.id %>/leitura" method="post" class="notification-read-form">
+      <%- include('../partials/csrf') %>
+      <input type="hidden" name="version" value="<%= notification.version %>">
+      <input type="hidden" name="filtro" value="<%= filter %>">
+      <input type="hidden" name="pagina" value="<%= page %>">
+      <button class="notification-icon-button" type="submit" title="Marcar como lida" aria-label="Marcar como lida: <%= notification.title %>"><i class="fa fa-check" aria-hidden="true"></i></button>
+    </form>
+  <% } %>
+</article>

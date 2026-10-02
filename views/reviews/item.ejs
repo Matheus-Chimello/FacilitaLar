@@ -1,0 +1,13 @@
+<article class="review-item" id="avaliacao-<%= review.id %>">
+  <header class="review-item-heading">
+    <div><strong><%= reviewerName(review.customer_name) %></strong><span class="review-verified"><i class="fa fa-check-circle-o" aria-hidden="true"></i> Atendimento verificado</span></div>
+    <div class="review-item-meta"><span class="review-stars" role="img" aria-label="<%= review.rating %> de 5 estrelas"><% for (let star = 1; star <= 5; star++) { %><i class="fa <%= star <= review.rating ? 'fa-star' : 'fa-star-o' %>" aria-hidden="true"></i><% } %></span><time datetime="<%= new Date(review.created_at).toISOString() %>"><%= reviewDate(review.created_at) %></time></div>
+  </header>
+  <span class="review-service"><%= review.service_title %></span>
+  <% if (review.comment_hidden) { %><p class="review-moderated"><i class="fa fa-shield" aria-hidden="true"></i> Comentário ocultado pela moderação.</p><% } else if (review.comment) { %><p class="review-text"><%= review.comment %></p><% } %>
+  <% if (review.response) { %>
+    <div class="review-response"><strong>Resposta de <%= review.provider_name %></strong><time datetime="<%= new Date(review.responded_at).toISOString() %>"><%= reviewDate(review.responded_at) %></time><p class="<%= review.response_hidden ? 'review-moderated' : 'review-text' %>"><%= review.response_hidden ? 'Resposta ocultada pela moderação.' : review.response %></p></div>
+  <% } else if (currentUser && currentUser.role === 'provider' && currentUser.id === review.provider_id) { %>
+    <a class="review-reply-link" href="/solicitacoes/<%= review.request_id %>/avaliacao#resposta"><i class="fa fa-reply" aria-hidden="true"></i> Responder</a>
+  <% } %>
+</article>

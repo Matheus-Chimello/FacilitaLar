@@ -15,7 +15,7 @@
       <dl class="detail-list">
         <div>
           <dt>Prestador</dt>
-          <dd><%= service.provider_name %></dd>
+          <dd><a href="/prestadores/<%= service.provider_id %>"><%= service.provider_name %></a><%- include('reviews/rating-summary', { average: service.provider_rating_average, count: service.provider_rating_count, href: `/prestadores/${service.provider_id}#avaliacoes` }) %></dd>
         </div>
         <div>
           <dt>Área de atendimento</dt>

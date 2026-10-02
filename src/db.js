@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const { DatabaseSync } = require('node:sqlite');
+const { imageOptions, imageLabels, defaultCategoryImage } = require('./service-images');
 
 const databasePath = process.env.FACILITALAR_DATABASE_PATH || path.join(__dirname, '..', 'database', 'facilitalar.sqlite');
 const databaseDir = path.dirname(databasePath);
@@ -10,19 +11,6 @@ fs.mkdirSync(databaseDir, { recursive: true });
 
 const db = new DatabaseSync(databasePath);
 db.exec('PRAGMA foreign_keys = ON');
-
-const imageOptions = [
-  '/assets/images/faxineira.png',
-  '/assets/images/encanador.jpg',
-  '/assets/images/eletricista.jpg',
-  '/assets/images/baba.jpg',
-  '/assets/images/jardineiro.jpg',
-  '/assets/images/limpador de piscina.jpg',
-  '/assets/images/montador de móveis.jpg',
-  '/assets/images/Limpador de Calha.jpg',
-];
-
-const imageLabels = ['Limpeza residencial', 'Encanamento', 'Eletricista', 'Cuidados familiares', 'Jardinagem', 'Piscina', 'Montagem de móveis', 'Limpeza de calhas'];
 
 function transaction(callback) {
   db.exec('BEGIN IMMEDIATE');
@@ -47,6 +35,29 @@ function get(sql, params = []) {
 function all(sql, params = []) {
   return db.prepare(sql).all(...params);
 }
+
+function notificationTableSql(name) {
+  return `CREATE TABLE IF NOT EXISTS ${name} (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    request_id INTEGER NOT NULL REFERENCES service_requests(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL CHECK (kind IN ('request', 'message', 'quote', 'quote_response', 'status', 'review_invite', 'review', 'review_response', 'review_moderation')),
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    occurrences INTEGER NOT NULL DEFAULT 1,
+    version INTEGER NOT NULL DEFAULT 1,
+    read_at INTEGER,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );`;
+}
+
+const notificationIndexesSql = `
+  CREATE INDEX IF NOT EXISTS notifications_inbox ON notifications(user_id, updated_at DESC, id DESC);
+  CREATE INDEX IF NOT EXISTS notifications_unread ON notifications(user_id) WHERE read_at IS NULL;
+  CREATE UNIQUE INDEX IF NOT EXISTS notifications_message_group
+    ON notifications(user_id, request_id) WHERE kind = 'message' AND read_at IS NULL;
+`;
 
 function initSchema() {
   db.exec(`
@@ -73,6 +84,7 @@ function initSchema() {
       name TEXT NOT NULL UNIQUE,
       description TEXT,
       icon TEXT,
+      image TEXT NOT NULL DEFAULT '',
       active INTEGER NOT NULL DEFAULT 1,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
@@ -137,6 +149,34 @@ function initSchema() {
     );
 
     CREATE UNIQUE INDEX IF NOT EXISTS request_quotes_pending ON request_quotes(request_id) WHERE status = 'pending';
+
+    CREATE TABLE IF NOT EXISTS reviews (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      request_id INTEGER NOT NULL UNIQUE REFERENCES service_requests(id) ON DELETE CASCADE,
+      rating INTEGER NOT NULL CHECK (typeof(rating) = 'integer' AND rating BETWEEN 1 AND 5),
+      comment TEXT NOT NULL DEFAULT '' CHECK (length(comment) <= 1500),
+      response TEXT CHECK (length(response) BETWEEN 1 AND 1500),
+      comment_hidden INTEGER NOT NULL DEFAULT 0 CHECK (comment_hidden IN (0, 1)),
+      response_hidden INTEGER NOT NULL DEFAULT 0 CHECK (response_hidden IN (0, 1)),
+      created_at INTEGER NOT NULL,
+      responded_at INTEGER
+    );
+    CREATE INDEX IF NOT EXISTS reviews_recent ON reviews(created_at DESC, id DESC);
+
+    CREATE TABLE IF NOT EXISTS review_moderation (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      review_id INTEGER NOT NULL REFERENCES reviews(id) ON DELETE CASCADE,
+      admin_id INTEGER NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+      target TEXT NOT NULL CHECK (target IN ('comment', 'response')),
+      action TEXT NOT NULL CHECK (action IN ('hide', 'restore')),
+      reason TEXT NOT NULL CHECK (reason IN ('offensive_content', 'personal_data', 'spam', 'reviewed')),
+      note TEXT NOT NULL DEFAULT '' CHECK (length(note) <= 500),
+      created_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS review_moderation_history ON review_moderation(review_id, id DESC);
+
+    ${notificationTableSql('notifications')}
+    ${notificationIndexesSql}
 
     CREATE TABLE IF NOT EXISTS provider_hours (
       provider_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -214,6 +254,9 @@ function initSchema() {
   if (!all('PRAGMA table_info(services)').some((column) => column.name === 'duration_minutes')) {
     db.exec('ALTER TABLE services ADD COLUMN duration_minutes INTEGER NOT NULL DEFAULT 60');
   }
+  if (!all('PRAGMA table_info(categories)').some((column) => column.name === 'image')) {
+    db.exec("ALTER TABLE categories ADD COLUMN image TEXT NOT NULL DEFAULT ''");
+  }
   const userColumns = all('PRAGMA table_info(users)');
   if (!userColumns.some((column) => column.name === 'email_verified_at')) {
     db.exec('ALTER TABLE users ADD COLUMN email_verified_at TEXT');
@@ -221,6 +264,25 @@ function initSchema() {
   }
   for (const [name, type] of [['latitude', 'REAL'], ['longitude', 'REAL'], ['postal_code', "TEXT NOT NULL DEFAULT ''"], ['location_address', "TEXT NOT NULL DEFAULT ''"]]) {
     if (!userColumns.some((column) => column.name === name)) db.exec(`ALTER TABLE users ADD COLUMN ${name} ${type}`);
+  }
+  if (!get('SELECT 1 FROM schema_migrations WHERE name = ?', ['notification-review-kinds-v1'])) {
+    transaction(() => {
+      const definition = get("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'notifications'").sql;
+      if (!definition.includes("'review_invite'")) {
+        const sequence = get("SELECT seq FROM sqlite_sequence WHERE name = 'notifications'")?.seq || 0;
+        db.exec(notificationTableSql('notifications_next'));
+        db.exec(`INSERT INTO notifications_next SELECT * FROM notifications;
+          DROP TABLE notifications;
+          ALTER TABLE notifications_next RENAME TO notifications;`);
+        db.exec(notificationIndexesSql);
+        if (get("SELECT 1 FROM sqlite_sequence WHERE name = 'notifications'")) {
+          run("UPDATE sqlite_sequence SET seq = MAX(seq, ?) WHERE name = 'notifications'", [sequence]);
+        } else if (sequence) {
+          run("INSERT INTO sqlite_sequence (name, seq) VALUES ('notifications', ?)", [sequence]);
+        }
+      }
+      run('INSERT INTO schema_migrations (name) VALUES (?)', ['notification-review-kinds-v1']);
+    });
   }
 }
 
@@ -262,6 +324,16 @@ function seedMarketCategories() {
       run('INSERT OR IGNORE INTO categories (name, description, icon) VALUES (?, ?, ?)', category);
     }
     run('INSERT INTO schema_migrations (name) VALUES (?)', ['market-categories-v1']);
+  });
+}
+
+function initializeCategoryImages() {
+  if (get('SELECT 1 FROM schema_migrations WHERE name = ?', ['category-images-v1'])) return;
+  transaction(() => {
+    for (const category of all("SELECT id, name FROM categories WHERE image = ''")) {
+      run('UPDATE categories SET image = ? WHERE id = ?', [defaultCategoryImage(category.name), category.id]);
+    }
+    run('INSERT INTO schema_migrations (name) VALUES (?)', ['category-images-v1']);
   });
 }
 
@@ -494,6 +566,7 @@ function bootstrapProductionAdmin() {
 initSchema();
 migrateSeedAccents();
 seedMarketCategories();
+initializeCategoryImages();
 if (process.env.NODE_ENV === 'production') bootstrapProductionAdmin();
 else {
   seedDatabase();

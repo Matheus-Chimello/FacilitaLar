@@ -1,0 +1,34 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+<main class="app-main reviews-main moderation-main">
+  <a class="notifications-back" href="/admin"><i class="fa fa-arrow-left" aria-hidden="true"></i> Painel</a>
+  <div class="dashboard-head"><div><p class="eyebrow">Administração</p><h1>Moderação de avaliações</h1></div><span class="result-count"><%= total %> <%= total === 1 ? 'avaliação' : 'avaliações' %></span></div>
+  <nav class="notification-filters" aria-label="Filtrar avaliações"><a href="/admin/avaliacoes" class="<%= filter === 'todas' ? 'is-active' : '' %>">Todas</a><a href="/admin/avaliacoes?filtro=ocultadas" class="<%= filter === 'ocultadas' ? 'is-active' : '' %>">Com conteúdo ocultado</a></nav>
+  <div class="review-list moderation-list">
+    <% reviews.forEach((review) => { %>
+      <article class="moderation-item">
+        <header class="review-item-heading"><div><strong><%= review.customer_name %></strong><span class="review-service"><%= review.service_title %> · <%= review.provider_name %></span></div><span class="review-stars" role="img" aria-label="<%= review.rating %> de 5 estrelas"><% for (let star = 1; star <= 5; star++) { %><i class="fa <%= star <= review.rating ? 'fa-star' : 'fa-star-o' %>" aria-hidden="true"></i><% } %></span></header>
+        <% if (review.comment) { %><div class="moderation-text"><strong>Comentário <%= review.comment_hidden ? '(ocultado)' : '' %></strong><p class="review-text"><%= review.comment %></p></div><% } %>
+        <% if (review.response) { %><div class="moderation-text"><strong>Resposta <%= review.response_hidden ? '(ocultada)' : '' %></strong><p class="review-text"><%= review.response %></p></div><% } %>
+        <% if (review.comment || review.response) { %>
+          <details class="moderation-controls"><summary><i class="fa fa-shield" aria-hidden="true"></i> Moderar conteúdo</summary>
+            <form action="/admin/avaliacoes/<%= review.id %>/moderar" method="post" class="moderation-form">
+              <%- include('../partials/csrf') %>
+              <label>Ação<select class="form-control" name="action" required><% if (review.comment) { %><option value="comment:<%= review.comment_hidden ? 'restore' : 'hide' %>"><%= review.comment_hidden ? 'Restaurar comentário' : 'Ocultar comentário' %></option><% } %><% if (review.response) { %><option value="response:<%= review.response_hidden ? 'restore' : 'hide' %>"><%= review.response_hidden ? 'Restaurar resposta' : 'Ocultar resposta' %></option><% } %></select></label>
+              <label>Motivo<select class="form-control" name="reason" <%= (review.comment ? review.comment_hidden : review.response_hidden) ? '' : 'required' %>><option value="" selected>Selecione um motivo</option><% Object.entries(moderationReasons).filter(([value]) => value !== 'reviewed').forEach(([value, label]) => { %><option value="<%= value %>"><%= label %></option><% }); %></select></label>
+              <label class="moderation-note">Observação interna<textarea class="form-control" name="note" rows="2" maxlength="500"></textarea></label>
+              <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="fa fa-shield" aria-hidden="true"></i> Registrar moderação</button>
+            </form>
+          </details>
+        <% } %>
+        <% if (review.history.length) { %><details class="review-moderation-history"><summary>Histórico de moderação</summary><% review.history.forEach((entry) => { %><p><strong><%= entry.admin_name %> · <%= entry.target === 'comment' ? `Comentário ${entry.action === 'hide' ? 'ocultado' : 'restaurado'}` : `Resposta ${entry.action === 'hide' ? 'ocultada' : 'restaurada'}` %></strong><span><%= moderationReasons[entry.reason] %></span><% if (entry.note) { %><span><%= entry.note %></span><% } %><time><%= reviewDate(entry.created_at) %></time></p><% }); %></details><% } %>
+        <a class="review-reply-link" href="/solicitacoes/<%= review.request_id %>/avaliacao">Ver atendimento <i class="fa fa-arrow-right" aria-hidden="true"></i></a>
+      </article>
+    <% }); %>
+  </div>
+  <% if (!reviews.length) { %><div class="notification-empty"><i class="fa fa-star-o" aria-hidden="true"></i><h2>Nenhuma avaliação encontrada</h2></div><% } %>
+  <%- include('pagination', { pageUrl: (value) => `/admin/avaliacoes?filtro=${filter}&pagina=${value}` }) %>
+</main>
+<script src="/public/js/reviews.js" defer></script>
+<%- include('../partials/footer') %>

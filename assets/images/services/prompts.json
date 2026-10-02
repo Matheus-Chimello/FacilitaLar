@@ -1,0 +1,106 @@
+{
+  "tool": "Built-in image_gen",
+  "use": "Illustrative home-service category photos, not actual provider portraits.",
+  "images": [
+    {
+      "file": "ar-condicionado.jpg",
+      "category": "Ar-condicionado",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A trained technician cleaning the filters of a wall-mounted split air conditioner in a bright living room, unit clearly visible, stable small step ladder. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Ar-condicionado' category."
+    },
+    {
+      "file": "chaveiro.jpg",
+      "category": "Chaveiro",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A locksmith fitting a door lock cylinder on a white residential front door, focus on gloved hands, lock and small hand tools. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Chaveiro' category."
+    },
+    {
+      "file": "cuidados-com-idosos.jpg",
+      "category": "Cuidados com idosos",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A friendly female caregiver helping an elderly woman walk safely in a bright home living room, both fully dressed, respectful warm interaction, no medical procedure. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Cuidados com idosos' category."
+    },
+    {
+      "file": "cuidados-com-pets.jpg",
+      "category": "Cuidados com pets",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A professional pet sitter walking a friendly medium-sized dog on a leash in the garden of a Brazilian house, subject and leash clearly visible. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Cuidados com pets' category."
+    },
+    {
+      "file": "dedetizacao.jpg",
+      "category": "Dedetização",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A pest-control technician wearing coveralls, protective gloves, goggles and a respirator applying treatment at an exterior house baseboard using a professional pump sprayer, no bystanders or exposed chemicals. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Dedetização' category."
+    },
+    {
+      "file": "eletrodomesticos.jpg",
+      "category": "Eletrodomésticos",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: An appliance repair technician inspecting a front-loading washing machine in a tidy home laundry room, disconnected appliance and small diagnostic tools visible. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Eletrodomésticos' category."
+    },
+    {
+      "file": "gesso-e-drywall.jpg",
+      "category": "Gesso e drywall",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A tradesperson fitting a white drywall panel onto a home interior partition frame, gloves and safety glasses, frame and wall surface visibly recognizable. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Gesso e drywall' category."
+    },
+    {
+      "file": "impermeabilizacao.jpg",
+      "category": "Impermeabilização",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A professional applying waterproof coating with a roller to a small residential terrace floor, gloved hands, waterproofing bucket without text, neat gray coated surface. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Impermeabilização' category."
+    },
+    {
+      "file": "informatica-e-redes.jpg",
+      "category": "Informática e redes",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A technician configuring a white home Wi-Fi router next to a laptop on a clean desk, router antennas and cables clearly visible, laptop screen has abstract interface without legible text. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Informática e redes' category."
+    },
+    {
+      "file": "lavanderia-e-passadoria.jpg",
+      "category": "Lavanderia e passadoria",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A laundry professional pressing a cotton shirt with an iron on an ironing board in a bright laundry room, small pile of neatly folded clothing, no brand logos. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Lavanderia e passadoria' category."
+    },
+    {
+      "file": "limpeza-pos-obra.jpg",
+      "category": "Limpeza pós-obra",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A professional cleaner vacuuming fine construction dust from the floor of a freshly renovated unfurnished living room, protective gloves and dust mask, finished walls and wrapped fixtures. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Limpeza pós-obra' category."
+    },
+    {
+      "file": "manutencao-geral.jpg",
+      "category": "Manutenção geral",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A home maintenance professional fastening a wall shelf with a manual screwdriver in a bright home, small toolbox nearby, clear simple home repair activity. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Manutenção geral' category."
+    },
+    {
+      "file": "marcenaria.jpg",
+      "category": "Marcenaria",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A carpenter sanding the edge of a wooden cabinet in a clean workshop, hands and wood grain clearly visible, safety glasses and dust mask, no operating saw. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Marcenaria' category."
+    },
+    {
+      "file": "mudancas-e-fretes.jpg",
+      "category": "Mudanças e fretes",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: Two professional movers carrying a taped cardboard box from the open back of a white delivery van outside a Brazilian house, furniture protected with blankets, clear moving service. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Mudanças e fretes' category."
+    },
+    {
+      "file": "organizacao-de-ambientes.jpg",
+      "category": "Organização de ambientes",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A professional organizer arranging neatly folded clothes and fabric storage boxes inside a home wardrobe, visible before-and-after style tidy shelves but single realistic scene. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Organização de ambientes' category."
+    },
+    {
+      "file": "pintura.jpg",
+      "category": "Pintura",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A professional painter applying pale green paint with a roller to an interior living-room wall, drop cloth on floor, paint tray and roller clearly visible. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Pintura' category."
+    },
+    {
+      "file": "reformas-e-alvenaria.jpg",
+      "category": "Reformas e alvenaria",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A bricklayer using a trowel to lay a small red brick wall during a residential renovation, work gloves and protective glasses, bricks and mortar clearly visible. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Reformas e alvenaria' category."
+    },
+    {
+      "file": "seguranca-eletronica.jpg",
+      "category": "Segurança eletrônica",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A technician installing a small white outdoor security camera at reachable height beside the doorway of a home, camera and screwdriver clearly visible. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Segurança eletrônica' category."
+    },
+    {
+      "file": "serralheria.jpg",
+      "category": "Serralheria",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: A metalworker measuring a black steel gate frame on a workshop bench, gloves and protective glasses, tape measure and metal frame clearly visible, no sparks or unsafe welding. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Serralheria' category."
+    },
+    {
+      "file": "vidracaria.jpg",
+      "category": "Vidraçaria",
+      "prompt": "Use case: photorealistic-natural. Asset type: service category photograph for a Brazilian home-services marketplace named Facilita Lar. Primary request: Two glass installation professionals fitting a clear glass pane into a residential window frame with suction cup handles, cut-resistant gloves and safety glasses, no sharp exposed broken glass. Style: polished realistic editorial photo, natural daylight, neutral white plus restrained teal and green accents, genuine textures, professional and welcoming. Composition: landscape 3:2, medium shot, actual service action clearly recognizable, main subject centered with ample margins so a landscape thumbnail crop does not cut the activity, no decorative framing. Constraints: no logos, no text, no watermark, no collage, no brand names. This is the 'Vidraçaria' category."
+    }
+  ]
+}

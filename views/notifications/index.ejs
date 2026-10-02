@@ -1,0 +1,39 @@
+<%- include('../partials/head') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+<main class="app-main notifications-main" id="notification-center" data-revision="<%= notificationSummary.revision %>">
+  <a class="notifications-back" href="<%= backPath %>"><i class="fa fa-arrow-left" aria-hidden="true"></i> Painel</a>
+  <div class="dashboard-head notifications-heading">
+    <div><p class="eyebrow">Sua conta</p><h1>Notificações</h1><p class="notifications-count"><span data-notification-unread-count><%= notificationSummary.unreadCount %></span> <span data-notification-unread-label>não <%= notificationSummary.unreadCount === 1 ? 'lida' : 'lidas' %></span></p></div>
+    <div class="notification-page-actions">
+      <a href="/notificacoes?filtro=<%= filter %>&pagina=<%= page %>" class="notification-icon-button" data-notification-reload title="Atualizar notificações" aria-label="Atualizar notificações"><i class="fa fa-refresh" aria-hidden="true"></i></a>
+      <form action="/notificacoes/ler-todas" method="post">
+        <%- include('../partials/csrf') %>
+        <input type="hidden" name="filtro" value="<%= filter %>">
+        <button class="btn btn-sm btn-outline-secondary" type="submit" data-notification-mark-all <%= notificationSummary.unreadCount ? '' : 'disabled' %>><i class="fa fa-check-square-o" aria-hidden="true"></i> Marcar todas como lidas</button>
+      </form>
+    </div>
+  </div>
+  <div class="notification-list-toolbar">
+    <nav class="notification-filters" aria-label="Filtrar notificações">
+      <% [['todas', 'Todas'], ['nao-lidas', 'Não lidas'], ['lidas', 'Lidas']].forEach(([value, label]) => { %>
+        <a href="/notificacoes?filtro=<%= value %>" class="<%= filter === value ? 'is-active' : '' %>" <%- filter === value ? 'aria-current="page"' : '' %>><%= label %></a>
+      <% }); %>
+    </nav>
+    <a class="notification-updates" href="/notificacoes?filtro=<%= filter %>" data-notification-updates hidden><i class="fa fa-refresh" aria-hidden="true"></i> Atualizações disponíveis</a>
+  </div>
+  <ul class="notification-inbox">
+    <% notifications.forEach((notification) => { %><li><%- include('row', { notification, compact: false }) %></li><% }); %>
+  </ul>
+  <% if (!notifications.length) { %>
+    <div class="notification-empty"><i class="fa <%= filter === 'nao-lidas' ? 'fa-check-circle-o' : 'fa-bell-o' %>" aria-hidden="true"></i><h2><%= filter === 'nao-lidas' ? 'Você está em dia' : 'Nenhuma notificação' %></h2><p><%= filter === 'lidas' ? 'Nenhuma notificação lida por enquanto.' : filter === 'nao-lidas' ? 'Não há notificações pendentes.' : 'Suas notificações aparecerão aqui.' %></p></div>
+  <% } %>
+  <% if (pageCount > 1) { %>
+    <nav class="notification-pagination" aria-label="Páginas de notificações">
+      <% if (page > 1) { %><a class="notification-icon-button" href="/notificacoes?filtro=<%= filter %>&pagina=<%= page - 1 %>" title="Página anterior" aria-label="Página anterior"><i class="fa fa-chevron-left" aria-hidden="true"></i></a><% } %>
+      <span>Página <%= page %> de <%= pageCount %></span>
+      <% if (page < pageCount) { %><a class="notification-icon-button" href="/notificacoes?filtro=<%= filter %>&pagina=<%= page + 1 %>" title="Próxima página" aria-label="Próxima página"><i class="fa fa-chevron-right" aria-hidden="true"></i></a><% } %>
+    </nav>
+  <% } %>
+</main>
+<%- include('../partials/footer') %>

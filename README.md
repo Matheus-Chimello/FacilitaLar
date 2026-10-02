@@ -65,10 +65,19 @@ Novas contas criadas por e-mail e senha só podem entrar após confirmar o link 
 - Administrador pode gerenciar usuários, categorias, serviços e solicitações.
 - Administrador também pode cadastrar serviços, vinculando cada um a um prestador ativo.
 - Cliente e prestador conversam em cada solicitação, com histórico e avisos de mensagens não lidas.
+- Central de notificações com sino, contador de não lidas, filtros e acesso direto ao atendimento.
+- Avaliações verificadas de 1 a 5 estrelas, vinculadas aos atendimentos concluídos, com comentários e resposta do prestador.
+- Perfil público do prestador com serviços, média e histórico de avaliações.
 - Prestador envia propostas de valor; o cliente pode aceitar ou recusar. O valor aceito fica registrado no atendimento.
 - Busca de serviços e prestadores por proximidade, com raios de 1, 3, 5, 10, 20 e 50 km.
 - Cadastro do CEP do ponto de atendimento do prestador em `/prestador/localizacao`.
 - Interface responsiva com a logo original do projeto e degradês.
+
+## Imagens dos serviços
+
+Cada categoria padrão possui uma foto correspondente. No cadastro e na edição de serviços, a escolha da categoria atualiza a imagem e sua prévia. A opção **Padrão da categoria** funciona também sem JavaScript; o servidor resolve a foto e recusa imagens de outras categorias. Administradores definem a imagem padrão em `/admin/categorias`, inclusive para categorias novas ou renomeadas. As fotos existentes dos serviços não são alteradas automaticamente.
+
+As imagens complementares foram geradas com a ferramenta integrada de geração de imagens e estão em `assets/images/services`. O arquivo `assets/images/services/prompts.json` registra os prompts utilizados. As fotografias são ilustrativas, não retratos dos prestadores cadastrados.
 
 ## Busca por proximidade
 
@@ -85,6 +94,20 @@ O botão **Conversar** fica junto de cada solicitação nos painéis. As mensage
 ## Agenda e solicitações
 
 Os prestadores de demonstração começam com horários de segunda a sexta, das 8h às 12h e das 13h às 18h. Novos prestadores configuram a própria agenda antes de receber solicitações. O prestador pode confirmar ou recusar um horário solicitado; o cliente pode cancelar uma solicitação ainda não concluída. Solicitações não canceladas ocupam o intervalo, inclusive entre serviços diferentes do mesmo prestador. O cancelamento libera o horário. A agenda usa o horário de São Paulo.
+
+## Notificações
+
+O sino aparece para usuários autenticados e consulta os avisos a cada oito segundos enquanto a aba está visível. Em `/notificacoes`, cada usuário acompanha solicitações, mensagens, propostas, respostas e mudanças de status, com filtros por leitura e paginação. Mensagens não lidas da mesma conversa são agrupadas; abrir a conversa marca os avisos daquele atendimento como lidos. A consulta administrativa não altera a leitura dos participantes.
+
+Os avisos são gravados no SQLite na mesma transação da ação original, sem depender de SMTP ou permissões de notificações do navegador. A primeira inicialização recupera solicitações e propostas pendentes e mensagens ainda não lidas. O histórico permanece após reiniciar o servidor. Esta etapa não envia notificações por e-mail ou push.
+
+## Avaliações verificadas
+
+Ao concluir um atendimento, o cliente recebe um convite para avaliar. O botão **Avaliar** também aparece no painel do contratante e na conversa. Somente o cliente daquele atendimento pode publicar uma avaliação, com nota inteira de 1 a 5 e comentário opcional de até 1.500 caracteres. O banco impede avaliações duplicadas, inclusive em envios simultâneos. Não são geradas avaliações fictícias para as contas de demonstração.
+
+O prestador acompanha a reputação em `/prestador/avaliacoes` e pode publicar uma resposta de até 1.500 caracteres por avaliação. A publicação da nota ou da resposta gera uma notificação para a outra parte. O perfil público `/prestadores/:id` reúne os serviços e as avaliações paginadas; o catálogo também mostra a média e a quantidade de avaliações. Os clientes são identificados publicamente pelo primeiro nome e pela inicial do sobrenome, sem expor o endereço do atendimento ou o e-mail.
+
+Em `/admin/avaliacoes`, a administração pode ocultar ou restaurar comentários e respostas por conteúdo abusivo, exposição de dados pessoais ou spam. Cada ação exige um motivo e registra autor, data e observação interna opcional no histórico. As notas não podem ser alteradas por essa tela e continuam na média mesmo quando um texto é ocultado, preservando críticas legítimas e o histórico original. Os convites de atendimentos já concluídos são recuperados uma única vez na atualização do banco.
 
 ## Testes
 
@@ -110,6 +133,9 @@ As tabelas principais são:
 - `service_requests`
 - `request_messages`
 - `request_quotes`
+- `notifications`
+- `reviews`
+- `review_moderation`
 - `provider_hours`
 - `provider_days_off`
 - `sessions`

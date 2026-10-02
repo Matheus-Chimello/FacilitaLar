@@ -65,6 +65,8 @@
                       <%- include('../partials/csrf') %>
                       <button class="btn btn-sm btn-outline-danger" type="submit">Cancelar</button>
                     </form>
+                  <% } else if (request.status === 'completed') { %>
+                    <a class="btn btn-sm <%= request.review_id ? 'btn-outline-secondary' : 'btn-outline-primary' %>" href="/solicitacoes/<%= request.id %>/avaliacao"><i class="fa <%= request.review_id ? 'fa-star' : 'fa-star-o' %>" aria-hidden="true"></i> <%= request.review_id ? `Nota ${request.review_rating}/5` : 'Avaliar' %></a>
                   <% } %>
                 </td>
               </tr>

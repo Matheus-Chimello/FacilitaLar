@@ -60,6 +60,11 @@
       status.className = `badge badge-${data.statusClass}`;
       document.getElementById('request-price').textContent = data.priceLabel;
       document.getElementById('request-price-label').textContent = data.agreed ? 'Valor combinado' : 'Preço anunciado';
+      const reviewLink = document.getElementById('conversation-review-link');
+      if (reviewLink) {
+        reviewLink.hidden = data.status !== 'completed';
+        reviewLink.querySelector('span').textContent = data.reviewed ? 'Ver avaliação' : 'Avaliar atendimento';
+      }
       if (form) {
         canSend = data.canSend;
         input.disabled = !canSend;
@@ -67,6 +72,7 @@
         document.getElementById('chat-readonly').hidden = canSend;
       }
       connection.textContent = 'Atualizada';
+      if (data.messages.length) window.dispatchEvent(new Event('notifications:refresh'));
     } catch (error) {
       connection.textContent = 'Reconectando...';
       if (forceScroll) showError(error.message);

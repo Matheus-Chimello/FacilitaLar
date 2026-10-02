@@ -10,10 +10,11 @@
     <h3><a href="/servicos/<%= service.id %>"><%= service.title %></a></h3>
     <p><%= service.description %></p>
     <div class="service-provider">
-      <span><i class="fa fa-user"></i> <%= service.provider_name %></span>
+      <a class="service-provider-profile" href="/prestadores/<%= service.provider_id %>"><i class="fa fa-user" aria-hidden="true"></i> <%= service.provider_name %></a>
       <span><i class="fa fa-map-marker"></i> <%= service.service_area %></span>
       <% if (service.distance !== undefined) { %><span class="distance-badge"><i class="fa fa-location-arrow" aria-hidden="true"></i> A <%= formatDistance(service.distance) %> de você</span><% } %>
     </div>
+    <%- include('../reviews/rating-summary', { average: service.provider_rating_average, count: service.provider_rating_count, href: `/prestadores/${service.provider_id}#avaliacoes` }) %>
     <div class="service-actions">
       <a class="btn btn-outline-secondary btn-sm" href="/servicos/<%= service.id %>">Detalhes</a>
       <% if (currentUser && currentUser.role === 'customer') { %>

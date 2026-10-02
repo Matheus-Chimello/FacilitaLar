@@ -3,7 +3,10 @@ const bcrypt = require('bcryptjs');
 const validator = require('validator');
 
 const { all, get, run, imageOptions, transaction } = require('./db');
+const { categoryImage, defaultCategoryImage, imagesForCategory, genericImage } = require('./service-images');
 const { dashboardPath, requireRole, setFlash } = require('./auth');
+const { notifyRequestCreated, notifyStatus } = require('./notifications');
+const { ratingSummary, reviewPage } = require('./reviews');
 const { loginIsLimited, recordLoginFailure, clearLoginFailures, emailRequestAllowed, recordEmailRequest } = require('./security');
 const { coordinates, radiusOptions, locationFilter, nearbyServices } = require('./location');
 const { CepError, formatCep, lookupCep } = require('./cep');
@@ -14,6 +17,12 @@ const {
 } = require('./scheduling');
 
 const router = express.Router();
+router.use((req, res, next) => {
+  res.locals.categoryImage = categoryImage;
+  res.locals.imagesForCategory = imagesForCategory;
+  res.locals.imageOptions = imageOptions;
+  next();
+});
 const dummyPasswordHash = bcrypt.hashSync('unregistered-account', 10);
 const nextStatuses = {
   pending: ['accepted', 'canceled'],
@@ -55,10 +64,14 @@ function serviceQuery({ q, category, includeInactive = false, providerId = null,
       u.city AS provider_city,
       u.bio AS provider_bio,
       u.latitude AS provider_latitude,
-      u.longitude AS provider_longitude
+      u.longitude AS provider_longitude,
+      reputation.average AS provider_rating_average,
+      COALESCE(reputation.count, 0) AS provider_rating_count
     FROM services s
     JOIN categories c ON c.id = s.category_id
     JOIN users u ON u.id = s.provider_id
+    LEFT JOIN (SELECT r.provider_id, AVG(v.rating) AS average, COUNT(*) AS count FROM reviews v
+      JOIN service_requests r ON r.id = v.request_id GROUP BY r.provider_id) reputation ON reputation.provider_id = u.id
     ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
     ORDER BY s.created_at DESC
   `;
@@ -181,6 +194,7 @@ router.get('/prestadores', async (req, res) => {
     if (!providers.has(service.provider_id)) providers.set(service.provider_id, {
       id: service.provider_id, name: service.provider_name, city: service.provider_city,
       bio: service.provider_bio, image: service.image, distance: service.distance, services: [],
+      rating_average: service.provider_rating_average, rating_count: service.provider_rating_count,
     });
     providers.get(service.provider_id).services.push(service);
   }
@@ -189,6 +203,13 @@ router.get('/prestadores', async (req, res) => {
     categories: activeCategories(), providerUrl: (id) => catalogUrl(filters, { prestador: id }),
     servicesUrl: catalogUrl(filters), providersUrl: catalogUrl(filters, {}, '/prestadores'),
   });
+});
+
+router.get('/prestadores/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const provider = Number.isSafeInteger(id) && id > 0 ? get("SELECT id, name, city, bio FROM users WHERE id = ? AND role = 'provider' AND active = 1", [id]) : null;
+  if (!provider) return res.status(404).render('error', { title: 'Prestador não encontrado', message: 'Este prestador não está disponível.' });
+  res.render('provider-profile', { title: provider.name, provider, services: serviceQuery({ providerId: id }), ...reviewPage(id, req.query.pagina) });
 });
 
 router.get('/sobre', (req, res) => {
@@ -429,10 +450,12 @@ router.post('/sair', (req, res, next) => {
 router.get('/contratante', requireRole('customer'), (req, res) => {
   const requests = all(
     `SELECT r.*, s.title AS service_title, s.image, COALESCE(r.agreed_price, s.price) AS price, u.name AS provider_name, u.phone AS provider_phone,
-       (SELECT COUNT(*) FROM request_messages m WHERE m.request_id = r.id AND m.sender_id != r.customer_id AND m.read_at IS NULL) AS unread_count
+       (SELECT COUNT(*) FROM request_messages m WHERE m.request_id = r.id AND m.sender_id != r.customer_id AND m.read_at IS NULL) AS unread_count,
+       v.id AS review_id, v.rating AS review_rating
      FROM service_requests r
      JOIN services s ON s.id = r.service_id
      JOIN users u ON u.id = r.provider_id
+     LEFT JOIN reviews v ON v.request_id = r.id
      WHERE r.customer_id = ?
      ORDER BY r.created_at DESC`,
     [req.user.id]
@@ -486,9 +509,10 @@ router.post('/contratante/solicitar/:serviceId', requireRole('customer'), (req, 
       JOIN users u ON u.id = s.provider_id JOIN categories c ON c.id = s.category_id
       WHERE s.id = ? AND s.active = 1 AND u.active = 1 AND c.active = 1`, [service.id]);
     if (!current || !availableSlots(current, date).includes(time)) return false;
-    run(`INSERT INTO service_requests (service_id, customer_id, provider_id, scheduled_date, duration_minutes, address, notes)
+    const inserted = run(`INSERT INTO service_requests (service_id, customer_id, provider_id, scheduled_date, duration_minutes, address, notes)
       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [service.id, req.user.id, service.provider_id, `${date}T${time}`, current.duration_minutes, address, notes]);
+    notifyRequestCreated({ id: inserted.lastInsertRowid, provider_id: current.provider_id, service_title: service.title }, req.user.name);
     return true;
   });
   if (!result) {
@@ -501,17 +525,20 @@ router.post('/contratante/solicitar/:serviceId', requireRole('customer'), (req, 
 });
 
 router.post('/contratante/solicitacoes/:id/cancelar', requireRole('customer'), (req, res) => {
-  const request = get('SELECT * FROM service_requests WHERE id = ? AND customer_id = ?', [req.params.id, req.user.id]);
-
-  if (!request || request.status === 'completed') {
+  const canceled = transaction(() => {
+    const request = get('SELECT * FROM service_requests WHERE id = ? AND customer_id = ?', [req.params.id, req.user.id]);
+    if (!request || ['completed', 'canceled'].includes(request.status)) return false;
+    run("UPDATE service_requests SET status = 'canceled', updated_at = CURRENT_TIMESTAMP WHERE id = ?", [request.id]);
+    run("UPDATE request_quotes SET status = 'superseded', responded_at = CURRENT_TIMESTAMP WHERE request_id = ? AND status = 'pending'", [request.id]);
+    run("INSERT INTO request_messages (request_id, sender_id, body, kind) VALUES (?, ?, ?, 'system')", [request.id, req.user.id, 'Atendimento cancelado pelo cliente.']);
+    notifyStatus(request, req.user.id, 'canceled');
+    return true;
+  });
+  if (!canceled) {
     setFlash(req, 'warning', 'Esta solicitação não pode ser cancelada.');
     return res.redirect('/contratante');
   }
 
-  transaction(() => {
-    run("UPDATE service_requests SET status = 'canceled', updated_at = CURRENT_TIMESTAMP WHERE id = ?", [request.id]);
-    run("UPDATE request_quotes SET status = 'superseded', responded_at = CURRENT_TIMESTAMP WHERE request_id = ? AND status = 'pending'", [request.id]);
-  });
   setFlash(req, 'success', 'Solicitação cancelada.');
   return res.redirect('/contratante');
 });
@@ -542,6 +569,7 @@ router.get('/prestador', requireRole('provider'), (req, res) => {
     requests,
     stats,
     hasAvailability: Boolean(get('SELECT 1 FROM provider_hours WHERE provider_id = ? LIMIT 1', [req.user.id])),
+    reputation: ratingSummary(req.user.id),
   });
 });
 
@@ -802,7 +830,7 @@ router.post('/admin/categorias', requireRole('admin'), (req, res) => {
     });
   }
 
-  run('INSERT INTO categories (name, description, icon) VALUES (?, ?, ?)', [form.name, form.description, form.icon]);
+  run('INSERT INTO categories (name, description, icon, image) VALUES (?, ?, ?, ?)', [form.name, form.description, form.icon, form.image]);
   setFlash(req, 'success', 'Categoria cadastrada.');
   return res.redirect('/admin/categorias');
 });
@@ -832,11 +860,12 @@ router.post('/admin/categorias/:id', requireRole('admin'), (req, res) => {
     return res.redirect('/admin/categorias');
   }
 
-  const form = categoryFormData(req.body);
-  run('UPDATE categories SET name = ?, description = ?, icon = ? WHERE id = ?', [
+  const form = categoryFormData(req.body, category);
+  run('UPDATE categories SET name = ?, description = ?, icon = ?, image = ? WHERE id = ?', [
     form.name,
     form.description,
     form.icon,
+    form.image,
     category.id,
   ]);
   setFlash(req, 'success', 'Categoria atualizada.');
@@ -916,7 +945,7 @@ function serviceFormData(body) {
     category_id: Number(body.category_id || 0),
     price: Number(String(body.price || '').replace(',', '.')),
     duration_minutes: Number(body.duration_minutes || 60),
-    image: imageOptions.includes(body.image) ? body.image : imageOptions[0],
+    image: String(body.image || '').trim(),
     service_area: String(body.service_area || '').trim(),
   };
 }
@@ -929,9 +958,14 @@ function validateService(form) {
     return 'Informe um preço entre R$ 0,01 e R$ 1.000.000,00.';
   }
   if (!durationOptions.includes(form.duration_minutes)) return 'Escolha uma duração válida para o serviço.';
-  if (!Number.isSafeInteger(form.category_id) || !get('SELECT id FROM categories WHERE id = ? AND active = 1', [form.category_id])) {
+  const category = Number.isSafeInteger(form.category_id) && get('SELECT * FROM categories WHERE id = ? AND active = 1', [form.category_id]);
+  if (!category) {
     return 'Selecione uma categoria ativa.';
   }
+  if (form.image && !imagesForCategory(category).includes(form.image)) {
+    return 'Escolha uma imagem correspondente à categoria selecionada.';
+  }
+  form.image = form.image || categoryImage(category);
   if (form.title.length > 120 || form.description.length > 2000 || form.service_area.length > 160) {
     return 'Use até 120 caracteres no título, 2.000 na descrição e 160 na área de atendimento.';
   }
@@ -939,11 +973,13 @@ function validateService(form) {
   return null;
 }
 
-function categoryFormData(body) {
+function categoryFormData(body, existing = null) {
   return {
     name: String(body.name || '').trim(),
     description: String(body.description || '').trim(),
     icon: String(body.icon || 'fa-tag').trim(),
+    image: imageOptions.includes(body.image) || body.image === genericImage
+      ? body.image : existing ? categoryImage(existing) : defaultCategoryImage(body.name),
   };
 }
 
@@ -976,6 +1012,7 @@ function updateRequestStatus(req, res, scope) {
       canceled: 'Atendimento cancelado.',
     };
     run("INSERT INTO request_messages (request_id, sender_id, body, kind) VALUES (?, ?, ?, 'system')", [request.id, req.user.id, messages[status]]);
+    notifyStatus(request, req.user.id, status);
     return 'updated';
   });
 

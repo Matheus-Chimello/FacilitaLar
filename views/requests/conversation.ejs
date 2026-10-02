@@ -50,6 +50,7 @@
         <% if (request.notes) { %><div class="request-notes"><strong>Observações do cliente</strong><p><%= request.notes %></p></div><% } %>
       </section>
       <div id="negotiation-panel"><%- include('negotiation') %></div>
+      <% if (currentUser.role === 'customer') { %><a id="conversation-review-link" class="btn btn-outline-primary review-conversation-link" href="/solicitacoes/<%= request.id %>/avaliacao" <%= request.status === 'completed' ? '' : 'hidden' %>><i class="fa fa-star-o" aria-hidden="true"></i> <span><%= review ? 'Ver avaliação' : 'Avaliar atendimento' %></span></a><% } %>
     </aside>
   </div>
 </main>

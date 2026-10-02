@@ -8,7 +8,7 @@
       <p class="eyebrow"><%= currentUser.role === 'admin' ? 'Administração' : 'Prestador' %></p>
       <h1><%= service ? 'Editar serviço' : 'Novo serviço' %></h1>
     </div>
-    <form action="<%= currentUser.role === 'admin' ? '/admin/servicos' : service ? `/prestador/servicos/${service.id}` : '/prestador/servicos' %>" method="post">
+    <form action="<%= currentUser.role === 'admin' ? '/admin/servicos' : service ? `/prestador/servicos/${service.id}` : '/prestador/servicos' %>" method="post" data-service-image-picker>
       <%- include('../partials/csrf') %>
       <% if (currentUser.role === 'admin') { %>
         <div class="form-group">
@@ -30,7 +30,7 @@
         <select class="form-control" id="category_id" name="category_id" required>
           <option value="">Selecione</option>
           <% categories.forEach((category) => { %>
-            <option value="<%= category.id %>" <%= Number(form.category_id) === Number(category.id) ? 'selected' : '' %>><%= category.name %></option>
+            <option value="<%= category.id %>" data-image="<%= categoryImage(category) %>" <%= Number(form.category_id) === Number(category.id) ? 'selected' : '' %>><%= category.name %></option>
           <% }) %>
         </select>
       </div>
@@ -54,13 +54,17 @@
           <% durationOptions.forEach((duration) => { %><option value="<%= duration %>" <%= Number(form.duration_minutes || 60) === duration ? 'selected' : '' %>><%= duration %> minutos</option><% }) %>
         </select>
       </div>
-      <div class="form-group">
+      <% const selectedCategory = categories.find((category) => Number(category.id) === Number(form.category_id)); %>
+      <div class="form-group" data-image-picker>
         <label for="image">Imagem</label>
         <select class="form-control" id="image" name="image">
-          <% imageOptions.forEach((image) => { %>
-            <option value="<%= image %>" <%= form.image === image ? 'selected' : '' %>><%= imageLabel(image) %></option>
+          <option value="">Padrão da categoria</option>
+          <% imagesForCategory(selectedCategory).forEach((image) => { %>
+            <option value="<%= image %>" <%= form.image === image ? 'selected' : '' %>><%= selectedCategory.name %></option>
           <% }) %>
         </select>
+        <img class="service-image-preview" data-image-preview <% if (selectedCategory) { %>src="<%= categoryImage(selectedCategory) %>" alt="<%= selectedCategory.name %>"<% } else { %>alt="" hidden<% } %>>
+        <span class="sr-only" data-image-status role="status" aria-live="polite"></span>
       </div>
       <div class="button-row">
         <a class="btn btn-outline-secondary" href="<%= currentUser.role === 'admin' ? '/admin/servicos' : '/prestador' %>">Voltar</a>
@@ -72,4 +76,5 @@
   </section>
 </main>
 
+<script src="/public/js/service-images.js" defer></script>
 <%- include('../partials/footer') %>

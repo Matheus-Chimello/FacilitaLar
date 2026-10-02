@@ -36,6 +36,10 @@ const SqliteSessionStore = require('./src/session-store');
 const oauth = require('./src/oauth');
 const routes = require('./src/routes');
 const conversations = require('./src/conversations');
+const notifications = require('./src/notifications');
+const reviews = require('./src/reviews');
+notifications.initializeNotifications();
+reviews.initializeReviews();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -77,9 +81,13 @@ app.use(
 );
 
 app.use(loadCurrentUser);
+app.use(notifications.context);
+app.use(reviews.context);
 app.use(csrfProtection);
+app.use(notifications.router);
 app.use(oauth.router);
 app.use(routes);
+app.use(reviews.router);
 app.use(conversations);
 
 app.use((req, res) => {

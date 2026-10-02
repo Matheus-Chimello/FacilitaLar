@@ -30,6 +30,17 @@
           <label for="description">Descrição</label>
           <textarea class="form-control" id="description" name="description" rows="4"><%= form.description || '' %></textarea>
         </div>
+        <div class="form-group" data-image-picker>
+          <label for="image">Imagem padrão</label>
+          <select class="form-control" id="image" name="image">
+            <option value="/assets/images/services-bg.jpg">Serviços gerais</option>
+            <% imageOptions.forEach((image) => { %>
+              <option value="<%= image %>" <%= form.image === image ? 'selected' : '' %>><%= imageLabel(image) %></option>
+            <% }) %>
+          </select>
+          <img class="service-image-preview" data-image-preview src="<%= categoryImage(form) %>" alt="<%= form.name || 'Serviços gerais' %>">
+          <span class="sr-only" data-image-status role="status" aria-live="polite"></span>
+        </div>
         <div class="button-row">
           <% if (editing) { %>
             <a class="btn btn-outline-secondary" href="/admin/categorias">Cancelar</a>
@@ -72,4 +83,5 @@
   </section>
 </main>
 
+<script src="/public/js/service-images.js" defer></script>
 <%- include('../partials/footer') %>
